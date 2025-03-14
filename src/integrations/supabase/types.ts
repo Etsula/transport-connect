@@ -57,6 +57,63 @@ export type Database = {
           },
         ]
       }
+      document_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          required_for_countries: string[] | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          required_for_countries?: string[] | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          required_for_countries?: string[] | null
+        }
+        Relationships: []
+      }
+      package_types: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          max_height: number | null
+          max_length: number | null
+          max_weight: number | null
+          max_width: number | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          max_height?: number | null
+          max_length?: number | null
+          max_weight?: number | null
+          max_width?: number | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          max_height?: number | null
+          max_length?: number | null
+          max_weight?: number | null
+          max_width?: number | null
+          name?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company_name: string | null
@@ -140,12 +197,21 @@ export type Database = {
         Row: {
           budget: number | null
           created_at: string
+          customs_description: string | null
+          customs_value: number | null
           delivery_location: string
           description: string | null
+          destination_country: string | null
           dimensions: string | null
+          document_types: string[] | null
           id: string
+          is_international: boolean | null
+          origin_country: string | null
+          package_type: string | null
           pickup_location: string
+          requires_documents: boolean | null
           shipper_id: string
+          shipping_carrier: string | null
           status: string | null
           title: string
           updated_at: string
@@ -154,12 +220,21 @@ export type Database = {
         Insert: {
           budget?: number | null
           created_at?: string
+          customs_description?: string | null
+          customs_value?: number | null
           delivery_location: string
           description?: string | null
+          destination_country?: string | null
           dimensions?: string | null
+          document_types?: string[] | null
           id?: string
+          is_international?: boolean | null
+          origin_country?: string | null
+          package_type?: string | null
           pickup_location: string
+          requires_documents?: boolean | null
           shipper_id: string
+          shipping_carrier?: string | null
           status?: string | null
           title: string
           updated_at?: string
@@ -168,12 +243,21 @@ export type Database = {
         Update: {
           budget?: number | null
           created_at?: string
+          customs_description?: string | null
+          customs_value?: number | null
           delivery_location?: string
           description?: string | null
+          destination_country?: string | null
           dimensions?: string | null
+          document_types?: string[] | null
           id?: string
+          is_international?: boolean | null
+          origin_country?: string | null
+          package_type?: string | null
           pickup_location?: string
+          requires_documents?: boolean | null
           shipper_id?: string
+          shipping_carrier?: string | null
           status?: string | null
           title?: string
           updated_at?: string
@@ -188,6 +272,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shipping_carriers: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          service_level: string | null
+          supports_international: boolean | null
+          tracking_available: boolean | null
+          transit_time_days: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          service_level?: string | null
+          supports_international?: boolean | null
+          tracking_available?: boolean | null
+          transit_time_days?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          service_level?: string | null
+          supports_international?: boolean | null
+          tracking_available?: boolean | null
+          transit_time_days?: number | null
+        }
+        Relationships: []
       }
     }
     Views: {

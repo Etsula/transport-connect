@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -110,29 +109,29 @@ const CreateShipmentForm = () => {
   useEffect(() => {
     const fetchReferenceData = async () => {
       try {
-        // Fetch package types
+        // Fetch package types using a generic approach due to type limitations
         const { data: packageTypesData, error: packageTypesError } = await supabase
-          .from("package_types")
-          .select("*");
+          .from('package_types')
+          .select('*') as { data: PackageType[] | null, error: any };
         
         if (packageTypesError) throw packageTypesError;
-        setPackageTypes(packageTypesData);
+        if (packageTypesData) setPackageTypes(packageTypesData);
 
         // Fetch shipping carriers
         const { data: carriersData, error: carriersError } = await supabase
-          .from("shipping_carriers")
-          .select("*");
+          .from('shipping_carriers')
+          .select('*') as { data: ShippingCarrier[] | null, error: any };
         
         if (carriersError) throw carriersError;
-        setCarriers(carriersData);
+        if (carriersData) setCarriers(carriersData);
 
         // Fetch document types
         const { data: documentTypesData, error: documentTypesError } = await supabase
-          .from("document_types")
-          .select("*");
+          .from('document_types')
+          .select('*') as { data: DocumentType[] | null, error: any };
         
         if (documentTypesError) throw documentTypesError;
-        setDocumentTypes(documentTypesData);
+        if (documentTypesData) setDocumentTypes(documentTypesData);
       } catch (error) {
         console.error("Error fetching reference data:", error);
         toast({

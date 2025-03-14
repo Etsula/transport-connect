@@ -8,39 +8,67 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Globe, Package, Truck, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// Define types to match our database tables
+type PackageType = {
+  id: string;
+  name: string;
+  max_weight: number;
+  max_length: number;
+  max_width: number;
+  max_height: number;
+  description: string;
+};
+
+type ShippingCarrier = {
+  id: string;
+  name: string;
+  service_level: string;
+  transit_time_days: number;
+  supports_international: boolean;
+  tracking_available: boolean;
+  description: string;
+};
+
+type DocumentType = {
+  id: string;
+  name: string;
+  required_for_countries: string[] | null;
+  description: string;
+};
+
 const InternationalShipping = () => {
   const { toast } = useToast();
-  const [packageTypes, setPackageTypes] = useState<any[]>([]);
-  const [carriers, setCarriers] = useState<any[]>([]);
-  const [documentTypes, setDocumentTypes] = useState<any[]>([]);
+  const [packageTypes, setPackageTypes] = useState<PackageType[]>([]);
+  const [carriers, setCarriers] = useState<ShippingCarrier[]>([]);
+  const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch package types
+        // Fetch package types using type assertion as a workaround for type limitations
         const { data: packageTypesData, error: packageTypesError } = await supabase
-          .from("package_types")
-          .select("*");
+          .from('package_types')
+          .select('*') as { data: PackageType[] | null, error: any };
         
         if (packageTypesError) throw packageTypesError;
-        setPackageTypes(packageTypesData);
+        if (packageTypesData) setPackageTypes(packageTypesData);
 
         // Fetch shipping carriers
         const { data: carriersData, error: carriersError } = await supabase
-          .from("shipping_carriers")
-          .select("*");
+          .from('shipping_carriers')
+          .select('*') as { data: ShippingCarrier[] | null, error: any };
         
         if (carriersError) throw carriersError;
-        setCarriers(carriersData);
+        if (carriersData) setCarriers(carriersData);
 
         // Fetch document types
         const { data: documentTypesData, error: documentTypesError } = await supabase
-          .from("document_types")
-          .select("*");
+          .from('document_types')
+          .select('*') as { data: DocumentType[] | null, error: any };
         
         if (documentTypesError) throw documentTypesError;
-        setDocumentTypes(documentTypesData);
+        if (documentTypesData) setDocumentTypes(documentTypesData);
       } catch (error) {
         console.error("Error fetching data:", error);
         toast({
