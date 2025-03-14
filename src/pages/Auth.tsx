@@ -1,10 +1,10 @@
+
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auth as SupabaseAuth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
 const Auth = () => {
@@ -12,9 +12,10 @@ const Auth = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Create a subscription to auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === "SIGNED_IN") {
+      (event, session) => {
+        if (event === "SIGNED_IN" && session) {
           toast({
             title: "Welcome!",
             description: "You have successfully signed in.",
@@ -24,7 +25,22 @@ const Auth = () => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Check if user is already authenticated
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        navigate("/dashboard");
+      }
+    };
+    
+    checkUser();
+
+    // Clean up subscription when component unmounts
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+      }
+    };
   }, [navigate, toast]);
 
   return (
