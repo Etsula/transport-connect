@@ -8,6 +8,7 @@ import Register from "@/pages/Register";
 import Login from "@/pages/Login";
 import CreateShipment from "@/pages/CreateShipment";
 import InternationalShipping from "@/pages/InternationalShipping";
+import Messaging from "@/pages/Messaging";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navigation from "@/components/Navigation";
 
@@ -41,6 +42,22 @@ function App() {
           element={
             <ProtectedRoute>
               <InternationalShipping />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messaging"
+          element={
+            <ProtectedRoute>
+              <Messaging />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/messages/:shipmentId"
+          element={
+            <ProtectedRoute>
+              <Messaging />
             </ProtectedRoute>
           }
         />

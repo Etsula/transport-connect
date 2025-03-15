@@ -1,0 +1,194 @@
+
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Package, ArrowLeft } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import ShipmentMessaging from "@/components/ShipmentMessaging";
+
+const Messaging = () => {
+  const navigate = useNavigate();
+  const { shipmentId } = useParams<{ shipmentId: string }>();
+  const [loading, setLoading] = useState(true);
+  const [shipments, setShipments] = useState<any[]>([]);
+  const [selectedShipment, setSelectedShipment] = useState<any>(null);
+  const [userData, setUserData] = useState<{ userType: string; id: string | null }>({
+    userType: "shipper",
+    id: null
+  });
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        // Get current session
+        const { data: sessionData } = await supabase.auth.getSession();
+        
+        if (!sessionData.session) {
+          navigate("/auth");
+          return;
+        }
+        
+        const userId = sessionData.session.user.id;
+        
+        // Get user profile
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_type")
+          .eq("id", userId)
+          .single();
+          
+        if (profileError) {
+          console.error("Error fetching user profile:", profileError);
+          return;
+        }
+        
+        setUserData({
+          userType: profileData.user_type,
+          id: userId
+        });
+        
+        // Fetch shipments based on user type
+        let shipmentsQuery;
+        
+        if (profileData.user_type === "shipper") {
+          shipmentsQuery = supabase
+            .from("shipments")
+            .select("*, profiles(company_name)")
+            .eq("shipper_id", userId)
+            .order("created_at", { ascending: false });
+        } else {
+          // For transporters, show assigned shipments
+          shipmentsQuery = supabase
+            .from("shipments")
+            .select("*, profiles(company_name)")
+            .eq("transporter_id", userId)
+            .order("created_at", { ascending: false });
+        }
+        
+        const { data: shipmentsData, error: shipmentsError } = await shipmentsQuery;
+        
+        if (shipmentsError) {
+          console.error("Error fetching shipments:", shipmentsError);
+          return;
+        }
+        
+        setShipments(shipmentsData);
+        
+        // If shipmentId is provided in the URL, select that shipment
+        if (shipmentId && shipmentsData.length > 0) {
+          const shipment = shipmentsData.find((s: any) => s.id === shipmentId);
+          if (shipment) {
+            setSelectedShipment(shipment);
+          } else {
+            // If shipment not found or not accessible to current user
+            navigate("/messaging");
+          }
+        } else if (shipmentsData.length > 0) {
+          // Select the first shipment by default
+          setSelectedShipment(shipmentsData[0]);
+        }
+      } catch (error) {
+        console.error("Messaging data fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchUserData();
+  }, [navigate, shipmentId]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+              <h1 className="text-2xl font-bold text-primary">Messaging Center</h1>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        {loading ? (
+          <Card>
+            <CardContent className="flex items-center justify-center p-6">
+              <p>Loading messages...</p>
+            </CardContent>
+          </Card>
+        ) : shipments.length === 0 ? (
+          <Card>
+            <CardContent className="p-6">
+              <div className="text-center">
+                <p className="mb-4">You don't have any shipments to message about yet.</p>
+                <Button onClick={() => navigate("/create-shipment")}>
+                  Create a Shipment
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Shipment List */}
+            <Card className="lg:col-span-1">
+              <CardHeader>
+                <CardTitle>Your Shipments</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="divide-y">
+                  {shipments.map((shipment) => (
+                    <Button
+                      key={shipment.id}
+                      variant="ghost"
+                      className={`w-full justify-start p-4 h-auto ${
+                        selectedShipment?.id === shipment.id ? "bg-gray-100" : ""
+                      }`}
+                      onClick={() => setSelectedShipment(shipment)}
+                    >
+                      <Package className="h-4 w-4 mr-2" />
+                      <div className="text-left">
+                        <p className="font-medium text-sm">
+                          #{shipment.id.slice(-6)} - {shipment.title}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {shipment.pickup_location} → {shipment.delivery_location}
+                        </p>
+                      </div>
+                    </Button>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Messaging Area */}
+            <div className="lg:col-span-3">
+              {selectedShipment ? (
+                <ShipmentMessaging
+                  shipmentId={selectedShipment.id}
+                  shipmentTitle={selectedShipment.title}
+                  currentUserId={userData.id || ""}
+                  currentUserType={userData.userType as "shipper" | "transporter"}
+                />
+              ) : (
+                <Card>
+                  <CardContent className="p-6 text-center">
+                    <p>Select a shipment to view messages</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default Messaging;

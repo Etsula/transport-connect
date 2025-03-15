@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Package, Truck, Clock, MapPin, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ShipmentTracking from "@/components/ShipmentTracking";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -17,10 +17,35 @@ const Dashboard = () => {
     id: null
   });
 
+  const demoTrackingData = {
+    shipmentId: "123456789",
+    currentStatus: "In Transit",
+    progress: 65,
+    trackingPoints: [
+      {
+        location: "Warehouse, Nairobi",
+        timestamp: "Jun 12, 8:30 AM",
+        status: "Picked up",
+        coordinates: { lat: -1.286389, lng: 36.817223 }
+      },
+      {
+        location: "Sorting Center, Nakuru",
+        timestamp: "Jun 12, 2:15 PM",
+        status: "In Transit",
+        coordinates: { lat: -0.303099, lng: 36.080025 }
+      },
+      {
+        location: "En route to Kisumu",
+        timestamp: "Jun 13, 9:45 AM",
+        status: "In Transit",
+        coordinates: { lat: 0.091517, lng: 34.767906 }
+      }
+    ]
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Get current session
         const { data: sessionData } = await supabase.auth.getSession();
         
         if (!sessionData.session) {
@@ -30,7 +55,6 @@ const Dashboard = () => {
         
         const userId = sessionData.session.user.id;
         
-        // Get user profile
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("user_type")
@@ -47,7 +71,6 @@ const Dashboard = () => {
           id: userId
         });
         
-        // Fetch shipments based on user type
         let shipmentsQuery;
         
         if (profileData.user_type === "shipper") {
@@ -58,7 +81,6 @@ const Dashboard = () => {
             .order("created_at", { ascending: false })
             .limit(5);
         } else {
-          // For transporters, show all available shipments
           shipmentsQuery = supabase
             .from("shipments")
             .select("*, profiles(company_name)")
@@ -106,7 +128,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -116,9 +137,7 @@ const Dashboard = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="p-6">
             <div className="flex items-center gap-4">
@@ -158,7 +177,18 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Recent Shipments */}
+        {userData.userType === "shipper" && shipments.length > 0 && (
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">Live Tracking</h2>
+            <ShipmentTracking 
+              shipmentId={demoTrackingData.shipmentId}
+              currentStatus={demoTrackingData.currentStatus}
+              trackingPoints={demoTrackingData.trackingPoints}
+              progress={demoTrackingData.progress}
+            />
+          </section>
+        )}
+
         <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">
             {userData.userType === "shipper" ? "Your Recent Shipments" : "Available Shipments"}
@@ -183,9 +213,22 @@ const Dashboard = () => {
                         )}
                       </p>
                     </div>
-                    <Button variant="outline" onClick={() => navigate(`/shipments/${shipment.id}`)}>
-                      View Details
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => navigate(`/messages/${shipment.id}`)}
+                        size="sm"
+                      >
+                        Message
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => navigate(`/shipments/${shipment.id}`)}
+                        size="sm"
+                      >
+                        View Details
+                      </Button>
+                    </div>
                   </div>
                 ))
               )}
@@ -193,10 +236,9 @@ const Dashboard = () => {
           </Card>
         </section>
 
-        {/* Quick Actions */}
         <section>
           <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link to="/create-shipment">
               <Button className="w-full bg-primary hover:bg-primary/90">
                 Create New Shipment
@@ -205,6 +247,11 @@ const Dashboard = () => {
             <Link to="/international-shipping">
               <Button variant="outline" className="w-full">
                 International Shipping Options
+              </Button>
+            </Link>
+            <Link to="/messaging">
+              <Button variant="outline" className="w-full">
+                Message Center
               </Button>
             </Link>
           </div>
