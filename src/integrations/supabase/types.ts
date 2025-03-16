@@ -9,6 +9,105 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      agent_locations: {
+        Row: {
+          address: string
+          area: string
+          city: string
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+        }
+        Insert: {
+          address: string
+          area: string
+          city: string
+          country: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+        }
+        Update: {
+          address?: string
+          area?: string
+          city?: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+        }
+        Relationships: []
+      }
+      agents: {
+        Row: {
+          agent_name: string
+          agent_type: string
+          business_id: string | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          id: string
+          location_id: string | null
+          rating: number | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_name: string
+          agent_type: string
+          business_id?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          rating?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_name?: string
+          agent_type?: string
+          business_id?: string | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          id?: string
+          location_id?: string | null
+          rating?: number | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_agent_location"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "agent_locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bids: {
         Row: {
           amount: number
@@ -56,6 +155,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      delivery_charges: {
+        Row: {
+          base_price: number
+          created_at: string
+          destination_area: string
+          distance_price: number | null
+          id: string
+          origin_area: string
+          package_type: string
+          updated_at: string
+          urgent_fee: number | null
+          weight_price: number | null
+        }
+        Insert: {
+          base_price: number
+          created_at?: string
+          destination_area: string
+          distance_price?: number | null
+          id?: string
+          origin_area: string
+          package_type: string
+          updated_at?: string
+          urgent_fee?: number | null
+          weight_price?: number | null
+        }
+        Update: {
+          base_price?: number
+          created_at?: string
+          destination_area?: string
+          distance_price?: number | null
+          id?: string
+          origin_area?: string
+          package_type?: string
+          updated_at?: string
+          urgent_fee?: number | null
+          weight_price?: number | null
+        }
+        Relationships: []
       }
       document_types: {
         Row: {
@@ -305,6 +443,47 @@ export type Database = {
           transit_time_days?: number | null
         }
         Relationships: []
+      }
+      webhooks: {
+        Row: {
+          business_id: string
+          created_at: string
+          events: string[]
+          id: string
+          is_active: boolean | null
+          last_triggered_at: string | null
+          secret: string
+          url: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          events: string[]
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          secret: string
+          url: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean | null
+          last_triggered_at?: string | null
+          secret?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

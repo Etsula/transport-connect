@@ -11,6 +11,7 @@ import InternationalShipping from "@/pages/InternationalShipping";
 import Messaging from "@/pages/Messaging";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navigation from "@/components/Navigation";
+import AgentManagement from "@/pages/AgentManagement";
 
 function App() {
   return (
@@ -58,6 +59,14 @@ function App() {
           element={
             <ProtectedRoute>
               <Messaging />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/agent-management"
+          element={
+            <ProtectedRoute>
+              <AgentManagement />
             </ProtectedRoute>
           }
         />
