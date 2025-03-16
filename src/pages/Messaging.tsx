@@ -22,13 +22,18 @@ interface ShipmentData {
   } | null;
 }
 
+interface UserData {
+  userType: string;
+  id: string | null;
+}
+
 const Messaging = () => {
   const navigate = useNavigate();
   const { shipmentId } = useParams<{ shipmentId: string }>();
   const [loading, setLoading] = useState(true);
   const [shipments, setShipments] = useState<ShipmentData[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<ShipmentData | null>(null);
-  const [userData, setUserData] = useState<{ userType: string; id: string | null }>({
+  const [userData, setUserData] = useState<UserData>({
     userType: "shipper",
     id: null
   });
@@ -61,61 +66,63 @@ const Messaging = () => {
           id: userId
         });
         
-        // Create query based on user type, but make it simpler to avoid deep types
-        const query = profileData.user_type === "shipper" 
-          ? supabase
-              .from("shipments")
-              .select(`
-                id, 
-                title, 
-                pickup_location, 
-                delivery_location, 
-                created_at, 
-                status, 
-                is_international, 
-                shipper_id,
-                transporter_id, 
-                profiles (company_name)
-              `)
-              .eq("shipper_id", userId)
-              .order("created_at", { ascending: false })
-          : supabase
-              .from("shipments")
-              .select(`
-                id, 
-                title, 
-                pickup_location, 
-                delivery_location, 
-                created_at, 
-                status, 
-                is_international, 
-                shipper_id,
-                transporter_id, 
-                profiles (company_name)
-              `)
-              .eq("transporter_id", userId)
-              .order("created_at", { ascending: false });
+        // Fetch shipments based on user type
+        let shipmentsQuery;
         
-        const { data: shipmentsData, error: shipmentsError } = await query;
+        if (profileData.user_type === "shipper") {
+          shipmentsQuery = supabase
+            .from("shipments")
+            .select(`
+              id, 
+              title, 
+              pickup_location, 
+              delivery_location, 
+              created_at, 
+              status, 
+              is_international, 
+              shipper_id,
+              transporter_id, 
+              profiles (company_name)
+            `)
+            .eq("shipper_id", userId)
+            .order("created_at", { ascending: false });
+        } else {
+          shipmentsQuery = supabase
+            .from("shipments")
+            .select(`
+              id, 
+              title, 
+              pickup_location, 
+              delivery_location, 
+              created_at, 
+              status, 
+              is_international, 
+              shipper_id,
+              transporter_id, 
+              profiles (company_name)
+            `)
+            .eq("transporter_id", userId)
+            .order("created_at", { ascending: false });
+        }
+        
+        const { data: shipmentsData, error: shipmentsError } = await shipmentsQuery;
         
         if (shipmentsError) {
           console.error("Error fetching shipments:", shipmentsError);
           return;
         }
         
-        // Explicitly cast the data to our ShipmentData type
-        const typedShipments = shipmentsData as unknown as ShipmentData[];
-        setShipments(typedShipments);
+        setShipments(shipmentsData || []);
         
-        if (shipmentId && typedShipments.length > 0) {
-          const shipment = typedShipments.find(s => s.id === shipmentId);
+        if (shipmentId && shipmentsData && shipmentsData.length > 0) {
+          const shipment = shipmentsData.find(s => s.id === shipmentId);
           if (shipment) {
             setSelectedShipment(shipment);
           } else {
             navigate("/messaging");
           }
-        } else if (typedShipments.length > 0) {
-          setSelectedShipment(typedShipments[0]);
+        } else if (shipmentsData && shipmentsData.length > 0) {
+          setSelectedShipment(shipmentsData[0]);
         }
       } catch (error) {
         console.error("Messaging data fetch error:", error);

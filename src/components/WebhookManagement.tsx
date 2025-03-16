@@ -137,6 +137,9 @@ export default function WebhookManagement({ userId }: WebhookManagementProps) {
       });
       return;
     }
+
+    // Ensure we have a secret, generate one if missing
+    const webhookSecret = formData.secret || generateRandomSecret();
     
     try {
       setLoading(true);
@@ -145,7 +148,7 @@ export default function WebhookManagement({ userId }: WebhookManagementProps) {
         business_id: userId,
         url: formData.url,
         events: formData.events,
-        secret: formData.secret || generateSecret()
+        secret: webhookSecret
       };
       
       if (editingWebhook) {
@@ -197,6 +200,15 @@ export default function WebhookManagement({ userId }: WebhookManagementProps) {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to ensure we always have a valid string secret
+  const generateRandomSecret = (): string => {
+    const randomBytes = new Uint8Array(32);
+    window.crypto.getRandomValues(randomBytes);
+    return Array.from(randomBytes)
+      .map(byte => byte.toString(16).padStart(2, '0'))
+      .join('');
   };
 
   const handleEdit = (webhook: Webhook) => {
