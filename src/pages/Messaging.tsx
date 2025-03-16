@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,12 +6,27 @@ import { Package, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import ShipmentMessaging from "@/components/ShipmentMessaging";
 
+interface ShipmentData {
+  id: string;
+  title: string;
+  pickup_location: string;
+  delivery_location: string;
+  created_at: string;
+  status: string;
+  is_international: boolean;
+  shipper_id: string;
+  transporter_id: string | null;
+  profiles?: {
+    company_name: string;
+  } | null;
+}
+
 const Messaging = () => {
   const navigate = useNavigate();
   const { shipmentId } = useParams<{ shipmentId: string }>();
   const [loading, setLoading] = useState(true);
-  const [shipments, setShipments] = useState<any[]>([]);
-  const [selectedShipment, setSelectedShipment] = useState<any>(null);
+  const [shipments, setShipments] = useState<ShipmentData[]>([]);
+  const [selectedShipment, setSelectedShipment] = useState<ShipmentData | null>(null);
   const [userData, setUserData] = useState<{ userType: string; id: string | null }>({
     userType: "shipper",
     id: null
@@ -21,7 +35,6 @@ const Messaging = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        // Get current session
         const { data: sessionData } = await supabase.auth.getSession();
         
         if (!sessionData.session) {
@@ -31,7 +44,6 @@ const Messaging = () => {
         
         const userId = sessionData.session.user.id;
         
-        // Get user profile
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("user_type")
@@ -48,7 +60,6 @@ const Messaging = () => {
           id: userId
         });
         
-        // Fetch shipments based on user type
         let shipmentsQuery;
         
         if (profileData.user_type === "shipper") {
@@ -58,7 +69,6 @@ const Messaging = () => {
             .eq("shipper_id", userId)
             .order("created_at", { ascending: false });
         } else {
-          // For transporters, show assigned shipments
           shipmentsQuery = supabase
             .from("shipments")
             .select("*, profiles(company_name)")
@@ -73,20 +83,17 @@ const Messaging = () => {
           return;
         }
         
-        setShipments(shipmentsData);
+        setShipments(shipmentsData as ShipmentData[]);
         
-        // If shipmentId is provided in the URL, select that shipment
         if (shipmentId && shipmentsData.length > 0) {
           const shipment = shipmentsData.find((s: any) => s.id === shipmentId);
           if (shipment) {
-            setSelectedShipment(shipment);
+            setSelectedShipment(shipment as ShipmentData);
           } else {
-            // If shipment not found or not accessible to current user
             navigate("/messaging");
           }
         } else if (shipmentsData.length > 0) {
-          // Select the first shipment by default
-          setSelectedShipment(shipmentsData[0]);
+          setSelectedShipment(shipmentsData[0] as ShipmentData);
         }
       } catch (error) {
         console.error("Messaging data fetch error:", error);
@@ -100,7 +107,6 @@ const Messaging = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
@@ -115,7 +121,6 @@ const Messaging = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         {loading ? (
           <Card>
@@ -136,7 +141,6 @@ const Messaging = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Shipment List */}
             <Card className="lg:col-span-1">
               <CardHeader>
                 <CardTitle>Your Shipments</CardTitle>
@@ -167,7 +171,6 @@ const Messaging = () => {
               </CardContent>
             </Card>
 
-            {/* Messaging Area */}
             <div className="lg:col-span-3">
               {selectedShipment ? (
                 <ShipmentMessaging
