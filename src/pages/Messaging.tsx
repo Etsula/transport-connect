@@ -50,6 +50,7 @@ const Messaging = () => {
         
         const userId = sessionData.session.user.id;
         
+        // Fetch user profile data
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("user_type")
@@ -66,46 +67,43 @@ const Messaging = () => {
           id: userId
         });
         
+        // Define base query fields for shipments
+        const queryFields = `
+          id, 
+          title, 
+          pickup_location, 
+          delivery_location, 
+          created_at, 
+          status, 
+          is_international, 
+          shipper_id,
+          transporter_id, 
+          profiles (company_name)
+        `;
+        
         // Fetch shipments based on user type
-        let shipmentsQuery;
+        let shipmentsData;
+        let shipmentsError;
         
         if (profileData.user_type === "shipper") {
-          shipmentsQuery = supabase
+          const response = await supabase
             .from("shipments")
-            .select(`
-              id, 
-              title, 
-              pickup_location, 
-              delivery_location, 
-              created_at, 
-              status, 
-              is_international, 
-              shipper_id,
-              transporter_id, 
-              profiles (company_name)
-            `)
+            .select(queryFields)
             .eq("shipper_id", userId)
             .order("created_at", { ascending: false });
+            
+          shipmentsData = response.data;
+          shipmentsError = response.error;
         } else {
-          shipmentsQuery = supabase
+          const response = await supabase
             .from("shipments")
-            .select(`
-              id, 
-              title, 
-              pickup_location, 
-              delivery_location, 
-              created_at, 
-              status, 
-              is_international, 
-              shipper_id,
-              transporter_id, 
-              profiles (company_name)
-            `)
+            .select(queryFields)
             .eq("transporter_id", userId)
             .order("created_at", { ascending: false });
+            
+          shipmentsData = response.data;
+          shipmentsError = response.error;
         }
-        
-        const { data: shipmentsData, error: shipmentsError } = await shipmentsQuery;
         
         if (shipmentsError) {
           console.error("Error fetching shipments:", shipmentsError);
