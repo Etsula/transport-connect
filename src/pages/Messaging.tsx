@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,47 +66,37 @@ const Messaging = () => {
           id: userId
         });
         
-        // Define base query fields for shipments
-        const queryFields = `
-          id, 
-          title, 
-          pickup_location, 
-          delivery_location, 
-          created_at, 
-          status, 
-          is_international, 
-          shipper_id,
-          transporter_id, 
-          profiles (company_name)
-        `;
-        
-        // Fetch shipments based on user type
-        let shipmentsData;
-        let shipmentsError;
+        // Fetch shipments with simplified approach to avoid deep type instantiation
+        let shipmentsData: ShipmentData[] = [];
         
         if (profileData.user_type === "shipper") {
-          const response = await supabase
+          // For shippers, get shipments they created
+          const { data, error } = await supabase
             .from("shipments")
-            .select(queryFields)
+            .select("id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, transporter_id, profiles:profiles(company_name)")
             .eq("shipper_id", userId)
             .order("created_at", { ascending: false });
             
-          shipmentsData = response.data;
-          shipmentsError = response.error;
+          if (error) {
+            console.error("Error fetching shipments:", error);
+            return;
+          }
+          
+          shipmentsData = data as ShipmentData[];
         } else {
-          const response = await supabase
+          // For transporters, get shipments assigned to them
+          const { data, error } = await supabase
             .from("shipments")
-            .select(queryFields)
+            .select("id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, transporter_id, profiles:profiles(company_name)")
             .eq("transporter_id", userId)
             .order("created_at", { ascending: false });
             
-          shipmentsData = response.data;
-          shipmentsError = response.error;
-        }
-        
-        if (shipmentsError) {
-          console.error("Error fetching shipments:", shipmentsError);
-          return;
+          if (error) {
+            console.error("Error fetching shipments:", error);
+            return;
+          }
+          
+          shipmentsData = data as ShipmentData[];
         }
         
         setShipments(shipmentsData || []);
