@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,15 +66,23 @@ const Messaging = () => {
           userType: profileData.user_type,
           id: userId
         });
-        
-        // Fetch shipments with simplified approach to avoid deep type instantiation
-        let shipmentsData: ShipmentData[] = [];
-        
+
         if (profileData.user_type === "shipper") {
-          // For shippers, get shipments they created
+          // For shippers, get shipments they created - with explicit typing
           const { data, error } = await supabase
             .from("shipments")
-            .select("id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, transporter_id, profiles:profiles(company_name)")
+            .select(`
+              id, 
+              title, 
+              pickup_location, 
+              delivery_location, 
+              created_at, 
+              status, 
+              is_international, 
+              shipper_id,
+              transporter_id,
+              profiles:profiles!inner(company_name)
+            `)
             .eq("shipper_id", userId)
             .order("created_at", { ascending: false });
             
@@ -82,12 +91,23 @@ const Messaging = () => {
             return;
           }
           
-          shipmentsData = data as ShipmentData[];
+          setShipments(data || []);
         } else {
-          // For transporters, get shipments assigned to them
+          // For transporters, get shipments assigned to them - with explicit typing
           const { data, error } = await supabase
             .from("shipments")
-            .select("id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, transporter_id, profiles:profiles(company_name)")
+            .select(`
+              id, 
+              title, 
+              pickup_location, 
+              delivery_location, 
+              created_at, 
+              status, 
+              is_international, 
+              shipper_id,
+              transporter_id,
+              profiles:profiles!inner(company_name)
+            `)
             .eq("transporter_id", userId)
             .order("created_at", { ascending: false });
             
@@ -96,20 +116,18 @@ const Messaging = () => {
             return;
           }
           
-          shipmentsData = data as ShipmentData[];
+          setShipments(data || []);
         }
         
-        setShipments(shipmentsData || []);
-        
-        if (shipmentId && shipmentsData && shipmentsData.length > 0) {
-          const shipment = shipmentsData.find(s => s.id === shipmentId);
+        if (shipmentId && shipments.length > 0) {
+          const shipment = shipments.find(s => s.id === shipmentId);
           if (shipment) {
             setSelectedShipment(shipment);
           } else {
             navigate("/messaging");
           }
-        } else if (shipmentsData && shipmentsData.length > 0) {
-          setSelectedShipment(shipmentsData[0]);
+        } else if (shipments.length > 0) {
+          setSelectedShipment(shipments[0]);
         }
       } catch (error) {
         console.error("Messaging data fetch error:", error);
@@ -119,7 +137,7 @@ const Messaging = () => {
     };
     
     fetchUserData();
-  }, [navigate, shipmentId]);
+  }, [navigate, shipmentId, shipments.length]);
 
   return (
     <div className="min-h-screen bg-gray-50">
