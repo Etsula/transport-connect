@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface ShipmentData {
   id: string;
@@ -24,6 +25,7 @@ interface UserData {
 
 export const useShipmentMessages = (shipmentId?: string) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [shipments, setShipments] = useState<ShipmentData[]>([]);
   const [selectedShipment, setSelectedShipment] = useState<ShipmentData | null>(null);
@@ -35,6 +37,7 @@ export const useShipmentMessages = (shipmentId?: string) => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        setLoading(true);
         const { data: sessionData } = await supabase.auth.getSession();
         
         if (!sessionData.session) {
@@ -53,6 +56,11 @@ export const useShipmentMessages = (shipmentId?: string) => {
           
         if (profileError) {
           console.error("Error fetching user profile:", profileError);
+          toast({
+            title: "Error",
+            description: "Could not fetch your profile data",
+            variant: "destructive",
+          });
           return;
         }
         
@@ -80,43 +88,55 @@ export const useShipmentMessages = (shipmentId?: string) => {
         // Filter based on user type
         if (profileData.user_type === "shipper") {
           query = query.eq("shipper_id", userId);
-        } else {
-          // For transporters, we need to check what column actually exists
-          // Assuming there's a column for transporters - adjust this based on your schema
-          query = query.eq("shipper_id", userId); // Change this to the correct filter
+        } else if (profileData.user_type === "transporter") {
+          // For transporters, fetch accepted shipments
+          // This would need to be adjusted based on your data model
+          query = query.eq("assigned_transporter_id", userId);
         }
           
         const { data, error } = await query;
           
         if (error) {
           console.error("Error fetching shipments:", error);
+          toast({
+            title: "Error",
+            description: "Could not fetch your shipments",
+            variant: "destructive",
+          });
           return;
         }
         
-        // Type assertion after we've validated the data exists
-        const typedData = data as ShipmentData[];
-        setShipments(typedData || []);
-        
-        // Initialize the selected shipment
-        if (shipmentId && typedData.length > 0) {
-          const shipment = typedData.find(s => s.id === shipmentId);
-          if (shipment) {
-            setSelectedShipment(shipment);
-          } else {
-            navigate("/messaging");
+        if (Array.isArray(data)) {
+          setShipments(data as ShipmentData[]);
+          
+          // Initialize the selected shipment
+          if (shipmentId && data.length > 0) {
+            const shipment = data.find(s => s.id === shipmentId);
+            if (shipment) {
+              setSelectedShipment(shipment);
+            } else if (data.length > 0) {
+              setSelectedShipment(data[0]);
+            }
+          } else if (data.length > 0) {
+            setSelectedShipment(data[0]);
           }
-        } else if (typedData.length > 0) {
-          setSelectedShipment(typedData[0]);
+        } else {
+          setShipments([]);
         }
       } catch (error) {
         console.error("Messaging data fetch error:", error);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
     };
     
     fetchUserData();
-  }, [navigate, shipmentId]);
+  }, [navigate, shipmentId, toast]);
 
   return {
     loading,
