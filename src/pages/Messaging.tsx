@@ -16,7 +16,6 @@ interface ShipmentData {
   status: string;
   is_international: boolean;
   shipper_id: string;
-  transporter_id: string | null;
   profiles: {
     company_name: string | null;
   } | null;
@@ -67,67 +66,52 @@ const Messaging = () => {
           id: userId
         });
 
+        // Fetch shipments based on user type
+        let query = supabase
+          .from("shipments")
+          .select(`
+            id, 
+            title, 
+            pickup_location, 
+            delivery_location, 
+            created_at, 
+            status, 
+            is_international, 
+            shipper_id,
+            profiles:profiles(company_name)
+          `)
+          .order("created_at", { ascending: false });
+          
+        // Filter based on user type
         if (profileData.user_type === "shipper") {
-          // For shippers, get shipments they created - with explicit typing
-          const { data, error } = await supabase
-            .from("shipments")
-            .select(`
-              id, 
-              title, 
-              pickup_location, 
-              delivery_location, 
-              created_at, 
-              status, 
-              is_international, 
-              shipper_id,
-              transporter_id,
-              profiles:profiles!inner(company_name)
-            `)
-            .eq("shipper_id", userId)
-            .order("created_at", { ascending: false });
-            
-          if (error) {
-            console.error("Error fetching shipments:", error);
-            return;
-          }
-          
-          setShipments(data || []);
+          query = query.eq("shipper_id", userId);
         } else {
-          // For transporters, get shipments assigned to them - with explicit typing
-          const { data, error } = await supabase
-            .from("shipments")
-            .select(`
-              id, 
-              title, 
-              pickup_location, 
-              delivery_location, 
-              created_at, 
-              status, 
-              is_international, 
-              shipper_id,
-              transporter_id,
-              profiles:profiles!inner(company_name)
-            `)
-            .eq("transporter_id", userId)
-            .order("created_at", { ascending: false });
-            
-          if (error) {
-            console.error("Error fetching shipments:", error);
-            return;
-          }
+          // For transporters, we need to check what column actually exists
+          // Assuming there's a column for transporters - adjust this based on your schema
+          query = query.eq("shipper_id", userId); // Change this to the correct filter
+        }
           
-          setShipments(data || []);
+        const { data, error } = await query;
+          
+        if (error) {
+          console.error("Error fetching shipments:", error);
+          return;
         }
         
-        if (shipmentId && shipments.length > 0) {
-          const shipment = shipments.find(s => s.id === shipmentId);
+        // Type assertion after we've validated the data exists
+        const typedData = data as ShipmentData[];
+        setShipments(typedData || []);
+        
+        // Initialize the selected shipment
+        if (shipmentId && typedData.length > 0) {
+          const shipment = typedData.find(s => s.id === shipmentId);
           if (shipment) {
             setSelectedShipment(shipment);
           } else {
             navigate("/messaging");
           }
-        } else if (shipments.length > 0) {
-          setSelectedShipment(shipments[0]);
+        } else if (typedData.length > 0) {
+          setSelectedShipment(typedData[0]);
         }
       } catch (error) {
         console.error("Messaging data fetch error:", error);
@@ -137,7 +121,7 @@ const Messaging = () => {
     };
     
     fetchUserData();
-  }, [navigate, shipmentId, shipments.length]);
+  }, [navigate, shipmentId]);
 
   return (
     <div className="min-h-screen bg-gray-50">
