@@ -69,31 +69,24 @@ export const useShipmentMessages = (shipmentId?: string) => {
           id: userId
         });
 
-        // Fetch shipments with a properly typed approach
+        // Simplified query structure to avoid deep type instantiation issues
         let query = supabase.from("shipments");
         
-        // Select the columns we need
-        const selectQuery = query.select(`
-          id, 
-          title, 
-          pickup_location, 
-          delivery_location, 
-          created_at, 
-          status, 
-          is_international, 
-          shipper_id,
-          profiles(company_name)
-        `).order("created_at", { ascending: false });
+        // Define the base query with explicit string literal for select
+        let baseQuery = query.select("id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, profiles:shipper_id(company_name)");
+        
+        // Apply ordering
+        baseQuery = baseQuery.order("created_at", { ascending: false });
           
         // Apply filters based on user type
         if (profileData.user_type === "shipper") {
-          selectQuery.eq("shipper_id", userId);
+          baseQuery = baseQuery.eq("shipper_id", userId);
         } else if (profileData.user_type === "transporter") {
           // For transporters, fetch accepted shipments
-          selectQuery.eq("assigned_transporter_id", userId);
+          baseQuery = baseQuery.eq("assigned_transporter_id", userId);
         }
           
-        const { data, error } = await selectQuery;
+        const { data, error } = await baseQuery;
           
         if (error) {
           console.error("Error fetching shipments:", error);
@@ -106,8 +99,8 @@ export const useShipmentMessages = (shipmentId?: string) => {
         }
         
         if (Array.isArray(data)) {
-          // Use type assertion to help TypeScript understand the data structure
-          const typedData = data as ShipmentData[];
+          // Explicitly cast the data to our ShipmentData type
+          const typedData = data as unknown as ShipmentData[];
           setShipments(typedData);
           
           // Initialize the selected shipment
