@@ -23,8 +23,9 @@ export const useShipmentConversation = (shipmentId: string, currentUserId: strin
       setLoading(true);
       
       try {
+        // Use type assertion to work around the type issue
         const { data, error } = await supabase
-          .from("shipment_messages")
+          .from('shipment_messages' as any)
           .select(`
             id,
             sender_id,
@@ -32,18 +33,23 @@ export const useShipmentConversation = (shipmentId: string, currentUserId: strin
             content,
             created_at,
             shipment_id,
-            profiles(company_name)
+            profiles!shipment_messages_sender_id_fkey(company_name)
           `)
-          .eq("shipment_id", shipmentId)
-          .order("created_at", { ascending: true });
+          .eq('shipment_id', shipmentId)
+          .order('created_at', { ascending: true });
           
         if (error) {
           console.error("Error fetching messages:", error);
           return;
         }
 
+        if (!data) {
+          setMessages([]);
+          return;
+        }
+
         // Format the messages for the UI
-        const formattedMessages = data.map(msg => ({
+        const formattedMessages: Message[] = data.map((msg: any) => ({
           id: msg.id,
           senderId: msg.sender_id,
           senderType: msg.sender_type as "shipper" | "transporter",
@@ -126,9 +132,9 @@ export const useShipmentConversation = (shipmentId: string, currentUserId: strin
         return false;
       }
       
-      // Send the message to the database
+      // Send the message to the database using a type assertion to work around type issues
       const { error } = await supabase
-        .from("shipment_messages")
+        .from('shipment_messages' as any)
         .insert({
           shipment_id: shipmentId,
           sender_id: currentUserId,
