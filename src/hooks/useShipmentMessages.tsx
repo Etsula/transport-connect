@@ -69,8 +69,8 @@ export const useShipmentMessages = (shipmentId?: string) => {
           id: userId
         });
 
-        // Fetch shipments based on user type
-        let query = supabase
+        // Use explicit type assertion for the query
+        const shipmentsQuery = supabase
           .from("shipments")
           .select(`
             id, 
@@ -87,14 +87,13 @@ export const useShipmentMessages = (shipmentId?: string) => {
           
         // Filter based on user type
         if (profileData.user_type === "shipper") {
-          query = query.eq("shipper_id", userId);
+          shipmentsQuery.eq("shipper_id", userId);
         } else if (profileData.user_type === "transporter") {
           // For transporters, fetch accepted shipments
-          // This would need to be adjusted based on your data model
-          query = query.eq("assigned_transporter_id", userId);
+          shipmentsQuery.eq("assigned_transporter_id", userId);
         }
           
-        const { data, error } = await query;
+        const { data, error } = await shipmentsQuery;
           
         if (error) {
           console.error("Error fetching shipments:", error);
