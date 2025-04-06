@@ -1,193 +1,36 @@
 
-import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Package, ArrowLeft } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { useParams } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { useShipmentMessages } from "@/hooks/useShipmentMessages";
 import ShipmentMessaging from "@/components/ShipmentMessaging";
-
-interface ShipmentData {
-  id: string;
-  title: string;
-  pickup_location: string;
-  delivery_location: string;
-  created_at: string;
-  status: string;
-  is_international: boolean;
-  shipper_id: string;
-  profiles: {
-    company_name: string | null;
-  } | null;
-}
-
-interface UserData {
-  userType: string;
-  id: string | null;
-}
+import ShipmentList from "@/components/ShipmentList";
+import MessagingHeader from "@/components/MessagingHeader";
+import MessagingStateDisplay from "@/components/MessagingStateDisplay";
 
 const Messaging = () => {
-  const navigate = useNavigate();
   const { shipmentId } = useParams<{ shipmentId: string }>();
-  const [loading, setLoading] = useState(true);
-  const [shipments, setShipments] = useState<ShipmentData[]>([]);
-  const [selectedShipment, setSelectedShipment] = useState<ShipmentData | null>(null);
-  const [userData, setUserData] = useState<UserData>({
-    userType: "shipper",
-    id: null
-  });
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        
-        if (!sessionData.session) {
-          navigate("/auth");
-          return;
-        }
-        
-        const userId = sessionData.session.user.id;
-        
-        // Fetch user profile data
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("user_type")
-          .eq("id", userId)
-          .single();
-          
-        if (profileError) {
-          console.error("Error fetching user profile:", profileError);
-          return;
-        }
-        
-        setUserData({
-          userType: profileData.user_type,
-          id: userId
-        });
-
-        // Fetch shipments based on user type
-        let query = supabase
-          .from("shipments")
-          .select(`
-            id, 
-            title, 
-            pickup_location, 
-            delivery_location, 
-            created_at, 
-            status, 
-            is_international, 
-            shipper_id,
-            profiles:profiles(company_name)
-          `)
-          .order("created_at", { ascending: false });
-          
-        // Filter based on user type
-        if (profileData.user_type === "shipper") {
-          query = query.eq("shipper_id", userId);
-        } else {
-          // For transporters, we need to check what column actually exists
-          // Assuming there's a column for transporters - adjust this based on your schema
-          query = query.eq("shipper_id", userId); // Change this to the correct filter
-        }
-          
-        const { data, error } = await query;
-          
-        if (error) {
-          console.error("Error fetching shipments:", error);
-          return;
-        }
-        
-        // Type assertion after we've validated the data exists
-        const typedData = data as ShipmentData[];
-        setShipments(typedData || []);
-        
-        // Initialize the selected shipment
-        if (shipmentId && typedData.length > 0) {
-          const shipment = typedData.find(s => s.id === shipmentId);
-          if (shipment) {
-            setSelectedShipment(shipment);
-          } else {
-            navigate("/messaging");
-          }
-        } else if (typedData.length > 0) {
-          setSelectedShipment(typedData[0]);
-        }
-      } catch (error) {
-        console.error("Messaging data fetch error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchUserData();
-  }, [navigate, shipmentId]);
+  const { 
+    loading,
+    shipments,
+    selectedShipment,
+    userData,
+    setSelectedShipment
+  } = useShipmentMessages(shipmentId);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/dashboard")}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-              <h1 className="text-2xl font-bold text-primary">Messaging Center</h1>
-            </div>
-          </div>
-        </div>
-      </header>
+      <MessagingHeader />
 
       <main className="container mx-auto px-4 py-8">
-        {loading ? (
-          <Card>
-            <CardContent className="flex items-center justify-center p-6">
-              <p>Loading messages...</p>
-            </CardContent>
-          </Card>
-        ) : shipments.length === 0 ? (
-          <Card>
-            <CardContent className="p-6">
-              <div className="text-center">
-                <p className="mb-4">You don't have any shipments to message about yet.</p>
-                <Button onClick={() => navigate("/create-shipment")}>
-                  Create a Shipment
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
+        <MessagingStateDisplay loading={loading} hasShipments={shipments.length > 0} />
+        
+        {!loading && shipments.length > 0 && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle>Your Shipments</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="divide-y">
-                  {shipments.map((shipment) => (
-                    <Button
-                      key={shipment.id}
-                      variant="ghost"
-                      className={`w-full justify-start p-4 h-auto ${
-                        selectedShipment?.id === shipment.id ? "bg-gray-100" : ""
-                      }`}
-                      onClick={() => setSelectedShipment(shipment)}
-                    >
-                      <Package className="h-4 w-4 mr-2" />
-                      <div className="text-left">
-                        <p className="font-medium text-sm">
-                          #{shipment.id.slice(-6)} - {shipment.title}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {shipment.pickup_location} → {shipment.delivery_location}
-                        </p>
-                      </div>
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <ShipmentList 
+              shipments={shipments} 
+              selectedShipmentId={selectedShipment?.id}
+              onShipmentSelect={setSelectedShipment}
+            />
 
             <div className="lg:col-span-3">
               {selectedShipment ? (
