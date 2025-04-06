@@ -69,25 +69,26 @@ export const useShipmentMessages = (shipmentId?: string) => {
           id: userId
         });
 
-        // Simplified query structure to avoid deep type instantiation issues
-        let query = supabase.from("shipments");
+        // Use a more direct approach to avoid type issues
+        const selectClause = "id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, profiles:shipper_id(company_name)";
         
-        // Define the base query with explicit string literal for select
-        let baseQuery = query.select("id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, profiles:shipper_id(company_name)");
+        // Start with a basic query and build from there
+        let queryBuilder = supabase.from("shipments").select(selectClause);
         
-        // Apply ordering
-        baseQuery = baseQuery.order("created_at", { ascending: false });
-          
+        // Apply ordering - separate this to simplify the typing
+        queryBuilder = queryBuilder.order("created_at", { ascending: false });
+        
         // Apply filters based on user type
         if (profileData.user_type === "shipper") {
-          baseQuery = baseQuery.eq("shipper_id", userId);
+          queryBuilder = queryBuilder.eq("shipper_id", userId);
         } else if (profileData.user_type === "transporter") {
           // For transporters, fetch accepted shipments
-          baseQuery = baseQuery.eq("assigned_transporter_id", userId);
+          queryBuilder = queryBuilder.eq("assigned_transporter_id", userId);
         }
-          
-        const { data, error } = await baseQuery;
-          
+        
+        // Execute the query
+        const { data, error } = await queryBuilder;
+        
         if (error) {
           console.error("Error fetching shipments:", error);
           toast({
@@ -99,8 +100,8 @@ export const useShipmentMessages = (shipmentId?: string) => {
         }
         
         if (Array.isArray(data)) {
-          // Explicitly cast the data to our ShipmentData type
-          const typedData = data as unknown as ShipmentData[];
+          // Use a more forceful type assertion to bypass the deep instantiation
+          const typedData = data as any as ShipmentData[];
           setShipments(typedData);
           
           // Initialize the selected shipment
