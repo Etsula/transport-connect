@@ -69,31 +69,31 @@ export const useShipmentMessages = (shipmentId?: string) => {
           id: userId
         });
 
-        // Use explicit type assertion for the query
-        const shipmentsQuery = supabase
-          .from("shipments")
-          .select(`
-            id, 
-            title, 
-            pickup_location, 
-            delivery_location, 
-            created_at, 
-            status, 
-            is_international, 
-            shipper_id,
-            profiles(company_name)
-          `)
-          .order("created_at", { ascending: false });
+        // Fetch shipments with a properly typed approach
+        let query = supabase.from("shipments");
+        
+        // Select the columns we need
+        const selectQuery = query.select(`
+          id, 
+          title, 
+          pickup_location, 
+          delivery_location, 
+          created_at, 
+          status, 
+          is_international, 
+          shipper_id,
+          profiles(company_name)
+        `).order("created_at", { ascending: false });
           
-        // Filter based on user type
+        // Apply filters based on user type
         if (profileData.user_type === "shipper") {
-          shipmentsQuery.eq("shipper_id", userId);
+          selectQuery.eq("shipper_id", userId);
         } else if (profileData.user_type === "transporter") {
           // For transporters, fetch accepted shipments
-          shipmentsQuery.eq("assigned_transporter_id", userId);
+          selectQuery.eq("assigned_transporter_id", userId);
         }
           
-        const { data, error } = await shipmentsQuery;
+        const { data, error } = await selectQuery;
           
         if (error) {
           console.error("Error fetching shipments:", error);
@@ -106,18 +106,20 @@ export const useShipmentMessages = (shipmentId?: string) => {
         }
         
         if (Array.isArray(data)) {
-          setShipments(data as ShipmentData[]);
+          // Use type assertion to help TypeScript understand the data structure
+          const typedData = data as ShipmentData[];
+          setShipments(typedData);
           
           // Initialize the selected shipment
-          if (shipmentId && data.length > 0) {
-            const shipment = data.find(s => s.id === shipmentId);
+          if (shipmentId && typedData.length > 0) {
+            const shipment = typedData.find(s => s.id === shipmentId);
             if (shipment) {
               setSelectedShipment(shipment);
-            } else if (data.length > 0) {
-              setSelectedShipment(data[0]);
+            } else if (typedData.length > 0) {
+              setSelectedShipment(typedData[0]);
             }
-          } else if (data.length > 0) {
-            setSelectedShipment(data[0]);
+          } else if (typedData.length > 0) {
+            setSelectedShipment(typedData[0]);
           }
         } else {
           setShipments([]);
