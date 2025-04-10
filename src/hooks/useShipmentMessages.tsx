@@ -69,25 +69,25 @@ export const useShipmentMessages = (shipmentId?: string) => {
           id: userId
         });
 
-        // Use a more direct approach to avoid type issues
-        const selectClause = "id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, profiles:shipper_id(company_name)";
+        // Break the query into separate parts to avoid deep type instantiation
+        // First get the raw query without type inference
+        const query = supabase.from("shipments") as any;
         
-        // Start with a basic query and build from there
-        let queryBuilder = supabase.from("shipments").select(selectClause);
+        // Build the query string manually to avoid TypeScript's deep type checking
+        const selectString = "id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, profiles:shipper_id(company_name)";
         
-        // Apply ordering - separate this to simplify the typing
-        queryBuilder = queryBuilder.order("created_at", { ascending: false });
+        // Start building the query
+        let builtQuery = query.select(selectString).order("created_at", { ascending: false });
         
         // Apply filters based on user type
         if (profileData.user_type === "shipper") {
-          queryBuilder = queryBuilder.eq("shipper_id", userId);
+          builtQuery = builtQuery.eq("shipper_id", userId);
         } else if (profileData.user_type === "transporter") {
-          // For transporters, fetch accepted shipments
-          queryBuilder = queryBuilder.eq("assigned_transporter_id", userId);
+          builtQuery = builtQuery.eq("assigned_transporter_id", userId);
         }
         
         // Execute the query
-        const { data, error } = await queryBuilder;
+        const { data, error } = await builtQuery;
         
         if (error) {
           console.error("Error fetching shipments:", error);
@@ -100,8 +100,8 @@ export const useShipmentMessages = (shipmentId?: string) => {
         }
         
         if (Array.isArray(data)) {
-          // Use a more forceful type assertion to bypass the deep instantiation
-          const typedData = data as any as ShipmentData[];
+          // Cast directly to ShipmentData[] to avoid type inference issues
+          const typedData = data as ShipmentData[];
           setShipments(typedData);
           
           // Initialize the selected shipment
