@@ -69,25 +69,25 @@ export const useShipmentMessages = (shipmentId?: string) => {
           id: userId
         });
 
-        // Break the query into separate parts to avoid deep type instantiation
-        // First get the raw query without type inference
-        const query = supabase.from("shipments") as any;
+        // Using a different approach to avoid deep type instantiation
+        // First, create a basic query without type checking
+        const baseQuery = supabase.from("shipments");
         
-        // Build the query string manually to avoid TypeScript's deep type checking
+        // Build the select string
         const selectString = "id, title, pickup_location, delivery_location, created_at, status, is_international, shipper_id, profiles:shipper_id(company_name)";
         
-        // Start building the query
-        let builtQuery = query.select(selectString).order("created_at", { ascending: false });
+        // Cast to any to bypass TypeScript's deep type checking
+        const query = (baseQuery as any).select(selectString).order("created_at", { ascending: false });
         
         // Apply filters based on user type
         if (profileData.user_type === "shipper") {
-          builtQuery = builtQuery.eq("shipper_id", userId);
+          query.eq("shipper_id", userId);
         } else if (profileData.user_type === "transporter") {
-          builtQuery = builtQuery.eq("assigned_transporter_id", userId);
+          query.eq("assigned_transporter_id", userId);
         }
         
         // Execute the query
-        const { data, error } = await builtQuery;
+        const { data, error } = await query;
         
         if (error) {
           console.error("Error fetching shipments:", error);
@@ -100,7 +100,7 @@ export const useShipmentMessages = (shipmentId?: string) => {
         }
         
         if (Array.isArray(data)) {
-          // Cast directly to ShipmentData[] to avoid type inference issues
+          // Force cast to ShipmentData[] to maintain type safety in the rest of the app
           const typedData = data as ShipmentData[];
           setShipments(typedData);
           
