@@ -49,9 +49,11 @@ const NavigationMap: React.FC<NavigationMapProps> = ({ className, showTraffic = 
     [3.632364, 41.37380]  // Moyale
   ];
   
+  const defaultCenter: [number, number] = [-1.286389, 36.817223];
+  
   return (
     <MapContainer
-      center={[-1.286389, 36.817223]}
+      center={defaultCenter}
       zoom={6}
       className={`${className || "h-96 w-full rounded-lg shadow-lg"}`}
     >
@@ -63,8 +65,8 @@ const NavigationMap: React.FC<NavigationMapProps> = ({ className, showTraffic = 
       {/* Traffic layer - conditionally rendered */}
       {showTraffic && (
         <TileLayer
-          url="https://tiles.osm.org/hot/{z}/{x}/{y}.png"
           attribution='Traffic data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://tiles.osm.org/hot/{z}/{x}/{y}.png"
         />
       )}
       
