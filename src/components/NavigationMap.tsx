@@ -1,12 +1,12 @@
 
 import React, { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in Leaflet with webpack/vite
 // This is needed because Leaflet's default marker icons reference assets that aren't bundled
-delete L.Icon.Default.prototype._getIconUrl;
+// Using a safer approach to set the icon URLs directly without removing _getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
   iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
