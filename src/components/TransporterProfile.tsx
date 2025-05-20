@@ -28,10 +28,22 @@ interface TransporterData {
   recent_locations: string[];
 }
 
+interface Review {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  reviewer_id: string;
+  shipment_id: string;
+  profiles?: {
+    company_name: string | null;
+  };
+}
+
 const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProfileProps) => {
   const [transporter, setTransporter] = useState<TransporterData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [showContactInfo, setShowContactInfo] = useState(false);
   const { toast } = useToast();
 
@@ -54,13 +66,13 @@ const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProf
           .eq("user_id", transporterId)
           .single();
           
-        const verificationStatus = verificationError ? "unverified" : verificationData.status;
+        const verificationStatus = verificationError ? "unverified" : verificationData?.status || "unverified";
         
         // Fetch ratings
         const { data: ratingsData, error: ratingsError } = await supabase
           .rpc("get_transporter_rating", { transporter_id: transporterId });
           
-        const ratingAverage = ratingsError ? 0 : ratingsData || 0;
+        const ratingAverage = ratingsError || ratingsData === null ? 0 : ratingsData;
         
         // Fetch completed shipments
         const { count: completedShipments, error: shipmentError } = await supabase
@@ -84,7 +96,7 @@ const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProf
           created_at: profileData.created_at,
           phone: profileData.phone || "",
           verification_status: verificationStatus,
-          rating_average: ratingAverage,
+          rating_average: ratingAverage as number,
           completed_shipments: completedShipments || 0,
           successful_deliveries: successfulDeliveries || 0,
           vehicle_types: ["Truck", "Van", "Motorcycle"], // This would come from a vehicles table
@@ -108,7 +120,7 @@ const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProf
           .order("created_at", { ascending: false })
           .limit(5);
           
-        if (!reviewsError) {
+        if (!reviewsError && reviewsData) {
           setReviews(reviewsData);
         }
       } catch (error) {
