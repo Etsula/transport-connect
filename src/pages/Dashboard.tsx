@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -122,6 +123,10 @@ const Dashboard = () => {
         variant: "destructive",
       });
     } else {
+      toast({
+        title: "Signed out",
+        description: "You have been signed out successfully",
+      });
       navigate("/");
     }
   };
@@ -148,15 +153,27 @@ const Dashboard = () => {
               </div>
             </div>
           </Card>
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <Truck className="w-8 h-8 text-primary" />
-              <div>
-                <p className="text-sm text-gray-600">Available Transporters</p>
-                <p className="text-2xl font-bold">12</p>
+          {userData.userType === "transporter" ? (
+            <Card className="p-6">
+              <div className="flex items-center gap-4">
+                <Package className="w-8 h-8 text-primary" />
+                <div>
+                  <p className="text-sm text-gray-600">My Bids</p>
+                  <p className="text-2xl font-bold">-</p>
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          ) : (
+            <Card className="p-6">
+              <div className="flex items-center gap-4">
+                <Truck className="w-8 h-8 text-primary" />
+                <div>
+                  <p className="text-sm text-gray-600">Available Transporters</p>
+                  <p className="text-2xl font-bold">12</p>
+                </div>
+              </div>
+            </Card>
+          )}
           <Card className="p-6">
             <div className="flex items-center gap-4">
               <Clock className="w-8 h-8 text-primary" />
@@ -221,13 +238,23 @@ const Dashboard = () => {
                       >
                         Message
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => navigate(`/shipments/${shipment.id}`)}
-                        size="sm"
-                      >
-                        View Details
-                      </Button>
+                      {userData.userType === "shipper" ? (
+                        <Button 
+                          variant="outline" 
+                          onClick={() => navigate(`/manage-shipment/${shipment.id}`)}
+                          size="sm"
+                        >
+                          Manage
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          onClick={() => navigate(`/shipment/${shipment.id}`)}
+                          size="sm"
+                        >
+                          View Details
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))
@@ -239,11 +266,20 @@ const Dashboard = () => {
         <section>
           <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link to="/create-shipment">
-              <Button className="w-full bg-primary hover:bg-primary/90">
-                Create New Shipment
-              </Button>
-            </Link>
+            {userData.userType === "shipper" && (
+              <Link to="/create-shipment">
+                <Button className="w-full bg-primary hover:bg-primary/90">
+                  Create New Shipment
+                </Button>
+              </Link>
+            )}
+            {userData.userType === "transporter" && (
+              <Link to="/find-shipments">
+                <Button className="w-full bg-primary hover:bg-primary/90">
+                  Find Available Shipments
+                </Button>
+              </Link>
+            )}
             <Link to="/international-shipping">
               <Button variant="outline" className="w-full">
                 International Shipping Options

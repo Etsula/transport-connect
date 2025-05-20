@@ -9,6 +9,9 @@ import Login from "@/pages/Login";
 import CreateShipment from "@/pages/CreateShipment";
 import InternationalShipping from "@/pages/InternationalShipping";
 import Messaging from "@/pages/Messaging";
+import ShipmentDetails from "@/pages/ShipmentDetails";
+import ManageShipment from "@/pages/ManageShipment";
+import FindShipments from "@/pages/FindShipments";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -68,6 +71,30 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <Messaging />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/shipment/:id"
+                element={
+                  <ProtectedRoute>
+                    <ShipmentDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/manage-shipment/:id"
+                element={
+                  <ProtectedRoute>
+                    <ManageShipment />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/find-shipments"
+                element={
+                  <ProtectedRoute>
+                    <FindShipments />
                   </ProtectedRoute>
                 }
               />
