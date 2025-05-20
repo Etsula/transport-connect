@@ -21,6 +21,7 @@ import TermsOfService from "@/pages/TermsOfService";
 import Security from "@/pages/Security";
 import Accessibility from "@/pages/Accessibility";
 import ContentSecurityPolicy from "@/security/ContentSecurityPolicy";
+import TransporterSettings from "@/pages/TransporterSettings";
 
 function App() {
   return (
@@ -103,6 +104,14 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <AgentManagement />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/transporter-settings"
+                element={
+                  <ProtectedRoute>
+                    <TransporterSettings />
                   </ProtectedRoute>
                 }
               />

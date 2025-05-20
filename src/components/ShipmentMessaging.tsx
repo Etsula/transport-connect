@@ -3,9 +3,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, User, Truck } from "lucide-react";
+import { Send, User, Truck, Shield } from "lucide-react";
 import { useShipmentConversation } from "@/hooks/useShipmentConversation";
 import { useToast } from "@/hooks/use-toast";
+import MessageActions from "@/components/MessageActions";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ShipmentMessagingProps {
   shipmentId: string;
@@ -24,10 +26,57 @@ const ShipmentMessaging = ({
   const { messages, loading, sendMessage } = useShipmentConversation(shipmentId, currentUserId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const [contactInfo, setContactInfo] = useState<{ [userId: string]: { phone?: string, verified?: boolean } }>({});
 
   // Scroll to bottom of messages when new ones are added
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Fetch contact information for users in the conversation
+  useEffect(() => {
+    const fetchContactInfo = async () => {
+      const userIds = [...new Set(messages.map(m => m.senderId))];
+      
+      if (userIds.length === 0) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, phone")
+          .in("id", userIds);
+          
+        if (error) throw error;
+        
+        // Also fetch verification status
+        const { data: verificationData, error: verificationError } = await supabase
+          .from("verification")
+          .select("user_id, status")
+          .in("user_id", userIds);
+          
+        if (verificationError) throw verificationError;
+        
+        const contactMap: { [userId: string]: { phone?: string, verified?: boolean } } = {};
+        
+        data?.forEach(user => {
+          contactMap[user.id] = { phone: user.phone || undefined };
+        });
+        
+        verificationData?.forEach(v => {
+          if (contactMap[v.user_id]) {
+            contactMap[v.user_id].verified = v.status === 'verified';
+          } else {
+            contactMap[v.user_id] = { verified: v.status === 'verified' };
+          }
+        });
+        
+        setContactInfo(contactMap);
+      } catch (error) {
+        console.error("Error fetching contact info:", error);
+      }
+    };
+    
+    fetchContactInfo();
   }, [messages]);
 
   const handleSendMessage = async () => {
@@ -51,6 +100,14 @@ const ShipmentMessaging = ({
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleDeleteMessage = (messageId: string) => {
+    // This will refresh the messages from the hook after deletion
+    toast({
+      title: "Message deleted",
+      description: "The message has been removed from the conversation",
+    });
   };
 
   return (
@@ -93,10 +150,22 @@ const ShipmentMessaging = ({
                         <User className="h-3 w-3" />
                       )}
                       <span className="text-xs font-medium">{message.senderName}</span>
+                      {contactInfo[message.senderId]?.verified && (
+                        <Shield className="h-3 w-3 text-blue-400" />
+                      )}
                     </div>
                     <p className="text-sm">{message.content}</p>
-                    <div className="text-xs mt-1 opacity-70 text-right">
-                      {message.timestamp}
+                    <div className="flex justify-between items-center mt-1">
+                      <div className="text-xs opacity-70">
+                        {message.timestamp}
+                      </div>
+                      <MessageActions
+                        messageId={message.id}
+                        onDelete={() => handleDeleteMessage(message.id)}
+                        contactPhone={contactInfo[message.senderId]?.phone}
+                        isCurrentUserMessage={message.senderId === currentUserId}
+                        shipmentId={shipmentId}
+                      />
                     </div>
                   </div>
                 </div>
