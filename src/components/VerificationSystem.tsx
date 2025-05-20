@@ -49,7 +49,7 @@ const VerificationSystem = ({ userId, userType, onVerificationUpdate }: Verifica
       }
 
       if (data) {
-        setVerificationStatus(data.status);
+        setVerificationStatus(data.status as any);
         if (onVerificationUpdate) {
           onVerificationUpdate(data.status);
         }
@@ -124,7 +124,6 @@ const VerificationSystem = ({ userId, userType, onVerificationUpdate }: Verifica
         .from('verification')
         .upsert({
           user_id: userId,
-          user_type: userType,
           status: 'pending',
           documents: documentPaths,
           submitted_at: new Date().toISOString(),

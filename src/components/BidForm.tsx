@@ -37,7 +37,7 @@ const BidForm = ({ shipmentId, transporterId, onBidSubmitted }: BidFormProps) =>
           return;
         }
         
-        setVerificationStatus(data.status);
+        setVerificationStatus(data?.status || "unverified");
       } catch (error) {
         console.error("Error checking verification:", error);
         setVerificationStatus("unverified");

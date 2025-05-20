@@ -43,7 +43,7 @@ const Messaging = () => {
               ) : (
                 <Card>
                   <CardContent className="p-6 text-center">
-                    <p>Select a shipment to view messages</p>
+                    <p className="text-gray-500">Select a shipment to view messages</p>
                   </CardContent>
                 </Card>
               )}

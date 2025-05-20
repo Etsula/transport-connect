@@ -34,7 +34,7 @@ const LiveLocationTracker = ({ transporterId, shipmentId }: LiveLocationTrackerP
           .single();
         
         if (!error && data) {
-          setIsTracking(data.is_tracking);
+          setIsTracking(data.is_tracking || false);
         }
       } catch (error) {
         console.error("Error checking tracking status:", error);
@@ -55,7 +55,7 @@ const LiveLocationTracker = ({ transporterId, shipmentId }: LiveLocationTrackerP
             table: 'transporter_locations',
             filter: `shipment_id=eq.${shipmentId}`
           },
-          (payload) => {
+          (payload: any) => {
             setLocationUpdates({
               lat: payload.new.latitude,
               lng: payload.new.longitude,

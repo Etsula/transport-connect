@@ -1,198 +1,175 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Truck, Shield, MapPin, Settings, Plus, Trash } from "lucide-react";
 import LiveLocationTracker from "@/components/LiveLocationTracker";
 import VerificationSystem from "@/components/VerificationSystem";
-import { Settings, Truck, Shield, MapPin, Clock, FileCog } from "lucide-react";
 
 const TransporterSettings = () => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState<any>(null);
-  const [formData, setFormData] = useState({
-    company_name: "",
-    phone: "",
-    email: "",
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [newVehicle, setNewVehicle] = useState({
     vehicle_type: "",
-    license_number: "",
-    max_load_capacity: "",
-    specialties: "",
-    insurance_policy: ""
+    max_weight: "",
+    max_length: "",
+    max_width: "",
+    max_height: "",
+    refrigerated: false,
+    hazardous_materials: false,
+    vehicle_registration: ""
   });
-  const [availabilitySettings, setAvailabilitySettings] = useState({
-    is_available: true,
-    accept_international: false,
-    accept_fragile: true,
-    accept_express: true,
-    working_hours_start: "08:00",
-    working_hours_end: "18:00"
-  });
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getUser();
+        if (error) throw error;
         
-        if (!sessionData.session) {
-          navigate("/auth");
-          return;
-        }
-        
-        const userId = sessionData.session.user.id;
-        
-        // Fetch profile data
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .single();
-          
-        if (profileError) {
-          console.error("Error fetching profile:", profileError);
-          toast({
-            title: "Error",
-            description: "Could not load your profile",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        // Check if user is a transporter
-        if (profileData.user_type !== "transporter") {
-          navigate("/dashboard");
-          toast({
-            title: "Access denied",
-            description: "This page is for transporters only",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        setUserData({
-          id: userId,
-          ...profileData,
-          email: sessionData.session.user.email
-        });
-        
-        // Set form data from profile
-        setFormData({
-          company_name: profileData.company_name || "",
-          phone: profileData.phone || "",
-          email: sessionData.session.user.email || "",
-          vehicle_type: profileData.vehicle_type || "",
-          license_number: profileData.license_number || "",
-          max_load_capacity: profileData.max_load_capacity || "",
-          specialties: profileData.specialties || "",
-          insurance_policy: profileData.insurance_policy || ""
-        });
-        
-        // Fetch transporter settings
-        const { data: settingsData, error: settingsError } = await supabase
-          .from("transporter_settings")
-          .select("*")
-          .eq("transporter_id", userId)
-          .single();
-          
-        if (!settingsError && settingsData) {
-          setAvailabilitySettings({
-            is_available: settingsData.is_available ?? true,
-            accept_international: settingsData.accept_international ?? false,
-            accept_fragile: settingsData.accept_fragile ?? true,
-            accept_express: settingsData.accept_express ?? true,
-            working_hours_start: settingsData.working_hours_start || "08:00",
-            working_hours_end: settingsData.working_hours_end || "18:00"
-          });
+        if (data?.user) {
+          setUserId(data.user.id);
+          fetchVehicles(data.user.id);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching user:", error);
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
-    
+
     fetchUserData();
-  }, [navigate, toast]);
+  }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAvailabilityChange = (name: string, value: boolean | string) => {
-    setAvailabilitySettings((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSaveProfile = async () => {
+  const fetchVehicles = async (id: string) => {
     try {
-      if (!userData?.id) return;
+      const { data, error } = await supabase
+        .from("transporter_vehicles")
+        .select("*")
+        .eq("transporter_id", id);
+        
+      if (error) throw error;
       
-      // Update profile data
-      const { error: profileError } = await supabase
-        .from("profiles")
-        .update({
-          company_name: formData.company_name,
-          phone: formData.phone,
-          vehicle_type: formData.vehicle_type,
-          license_number: formData.license_number,
-          max_load_capacity: formData.max_load_capacity,
-          specialties: formData.specialties,
-          insurance_policy: formData.insurance_policy
-        })
-        .eq("id", userData.id);
-      
-      if (profileError) throw profileError;
-      
-      // Insert or update transporter settings
-      const { error: settingsError } = await supabase
-        .from("transporter_settings")
-        .upsert({
-          transporter_id: userData.id,
-          is_available: availabilitySettings.is_available,
-          accept_international: availabilitySettings.accept_international,
-          accept_fragile: availabilitySettings.accept_fragile,
-          accept_express: availabilitySettings.accept_express,
-          working_hours_start: availabilitySettings.working_hours_start,
-          working_hours_end: availabilitySettings.working_hours_end,
-        });
-      
-      if (settingsError) throw settingsError;
-      
-      toast({
-        title: "Profile updated",
-        description: "Your settings have been saved successfully"
-      });
-    } catch (error: any) {
-      console.error("Error saving profile:", error);
+      setVehicles(data || []);
+    } catch (error) {
+      console.error("Error fetching vehicles:", error);
       toast({
         title: "Error",
-        description: "Failed to save your profile settings",
-        variant: "destructive"
+        description: "Failed to load your vehicles",
+        variant: "destructive",
       });
     }
   };
 
-  if (loading) {
+  const handleAddVehicle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!userId || !newVehicle.vehicle_type || !newVehicle.vehicle_registration) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    try {
+      const { error } = await supabase.from("transporter_vehicles").insert([
+        {
+          transporter_id: userId,
+          vehicle_type: newVehicle.vehicle_type,
+          max_weight: newVehicle.max_weight ? parseFloat(newVehicle.max_weight) : null,
+          max_length: newVehicle.max_length ? parseFloat(newVehicle.max_length) : null,
+          max_width: newVehicle.max_width ? parseFloat(newVehicle.max_width) : null,
+          max_height: newVehicle.max_height ? parseFloat(newVehicle.max_height) : null,
+          refrigerated: newVehicle.refrigerated,
+          hazardous_materials: newVehicle.hazardous_materials,
+          vehicle_registration: newVehicle.vehicle_registration,
+        }
+      ]);
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Vehicle added",
+        description: "Your vehicle has been added successfully",
+      });
+      
+      // Reset form and refresh vehicles list
+      setNewVehicle({
+        vehicle_type: "",
+        max_weight: "",
+        max_length: "",
+        max_width: "",
+        max_height: "",
+        refrigerated: false,
+        hazardous_materials: false,
+        vehicle_registration: ""
+      });
+      
+      if (userId) fetchVehicles(userId);
+    } catch (error: any) {
+      console.error("Error adding vehicle:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add vehicle",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteVehicle = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from("transporter_vehicles")
+        .delete()
+        .eq("id", id);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Vehicle removed",
+        description: "Vehicle has been removed successfully",
+      });
+      
+      if (userId) fetchVehicles(userId);
+    } catch (error: any) {
+      console.error("Error deleting vehicle:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete vehicle",
+        variant: "destructive",
+      });
+    }
+  };
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
-  
-  if (!userData) {
+
+  if (!userId) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Error loading user data. Please try again.</p>
+      <div className="container mx-auto py-8 px-4">
+        <Card>
+          <CardContent className="py-10 text-center">
+            <p>You need to log in to access transporter settings</p>
+            <Button className="mt-4" onClick={() => window.location.href = "/login"}>
+              Log In
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -200,234 +177,230 @@ const TransporterSettings = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-primary flex items-center">
-              <Settings className="mr-2 h-5 w-5" />
-              Transporter Settings
-            </h1>
-            <p className="text-gray-600">Manage your profile, verification and availability</p>
-          </div>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate("/dashboard")} 
-            className="mt-2 sm:mt-0"
-          >
-            Back to Dashboard
-          </Button>
-        </div>
-
-        <Tabs defaultValue="profile" className="space-y-4">
-          <TabsList className="grid grid-cols-4 w-full">
-            <TabsTrigger value="profile" className="flex items-center">
-              <Truck className="h-4 w-4 mr-2" /> Profile
+        <h1 className="text-3xl font-bold mb-8">Transporter Settings</h1>
+        
+        <Tabs defaultValue="verification">
+          <TabsList className="mb-6">
+            <TabsTrigger value="verification" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" /> Verification
             </TabsTrigger>
-            <TabsTrigger value="verification" className="flex items-center">
-              <Shield className="h-4 w-4 mr-2" /> Verification
+            <TabsTrigger value="vehicles" className="flex items-center gap-2">
+              <Truck className="h-4 w-4" /> Vehicles
             </TabsTrigger>
-            <TabsTrigger value="location" className="flex items-center">
-              <MapPin className="h-4 w-4 mr-2" /> Location
+            <TabsTrigger value="location" className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" /> Location
             </TabsTrigger>
-            <TabsTrigger value="availability" className="flex items-center">
-              <Clock className="h-4 w-4 mr-2" /> Availability
+            <TabsTrigger value="settings" className="flex items-center gap-2">
+              <Settings className="h-4 w-4" /> Account
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="profile">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="company_name">Company/Business Name</Label>
-                    <Input
-                      id="company_name"
-                      name="company_name"
-                      value={formData.company_name}
-                      onChange={handleInputChange}
-                      placeholder="Your business name"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      placeholder="Your contact number"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email Address</Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      disabled
-                      className="bg-gray-50"
-                    />
-                    <p className="text-xs text-gray-500">Contact support to change your email address</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="vehicle_type">Vehicle Type</Label>
-                    <Input
-                      id="vehicle_type"
-                      name="vehicle_type"
-                      value={formData.vehicle_type}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Truck, Van, Motorcycle"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="license_number">License/Registration Number</Label>
-                    <Input
-                      id="license_number"
-                      name="license_number"
-                      value={formData.license_number}
-                      onChange={handleInputChange}
-                      placeholder="Your business/vehicle license"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="max_load_capacity">Maximum Load Capacity (kg)</Label>
-                    <Input
-                      id="max_load_capacity"
-                      name="max_load_capacity"
-                      value={formData.max_load_capacity}
-                      onChange={handleInputChange}
-                      type="number"
-                      placeholder="e.g. 1000"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="specialties">Specialties</Label>
-                    <Input
-                      id="specialties"
-                      name="specialties"
-                      value={formData.specialties}
-                      onChange={handleInputChange}
-                      placeholder="e.g. Fragile items, Same-day delivery"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="insurance_policy">Insurance Policy Number</Label>
-                    <Input
-                      id="insurance_policy"
-                      name="insurance_policy"
-                      value={formData.insurance_policy}
-                      onChange={handleInputChange}
-                      placeholder="Your insurance policy number"
-                    />
-                  </div>
-                </div>
-                
-                <Button className="mt-6" onClick={handleSaveProfile}>
-                  Save Profile
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
           <TabsContent value="verification">
-            <VerificationSystem userId={userData.id} userType="transporter" />
+            <VerificationSystem userId={userId} userType="transporter" />
           </TabsContent>
           
-          <TabsContent value="location">
-            <LiveLocationTracker transporterId={userData.id} />
-          </TabsContent>
-          
-          <TabsContent value="availability">
+          <TabsContent value="vehicles">
             <Card>
               <CardHeader>
-                <CardTitle>Availability Settings</CardTitle>
+                <CardTitle>Your Vehicles</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label>Available for New Shipments</Label>
-                      <p className="text-sm text-gray-500">
-                        Turn off when you're not accepting new work
-                      </p>
+                  {vehicles.length > 0 ? (
+                    <div className="space-y-4">
+                      {vehicles.map((vehicle) => (
+                        <div key={vehicle.id} className="bg-white p-4 border rounded-md">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{vehicle.vehicle_type}</h3>
+                              <p className="text-sm text-gray-500">Registration: {vehicle.vehicle_registration}</p>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-red-500 h-8 w-8 p-0"
+                              onClick={() => handleDeleteVehicle(vehicle.id)}
+                            >
+                              <Trash className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
+                            {vehicle.max_weight && (
+                              <div>
+                                <p className="text-xs text-gray-500">Max weight</p>
+                                <p className="text-sm">{vehicle.max_weight} kg</p>
+                              </div>
+                            )}
+                            {vehicle.max_length && (
+                              <div>
+                                <p className="text-xs text-gray-500">Length</p>
+                                <p className="text-sm">{vehicle.max_length} m</p>
+                              </div>
+                            )}
+                            {vehicle.max_width && (
+                              <div>
+                                <p className="text-xs text-gray-500">Width</p>
+                                <p className="text-sm">{vehicle.max_width} m</p>
+                              </div>
+                            )}
+                            {vehicle.max_height && (
+                              <div>
+                                <p className="text-xs text-gray-500">Height</p>
+                                <p className="text-sm">{vehicle.max_height} m</p>
+                              </div>
+                            )}
+                          </div>
+                          
+                          {(vehicle.refrigerated || vehicle.hazardous_materials) && (
+                            <div className="flex gap-2 mt-2">
+                              {vehicle.refrigerated && (
+                                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                  Refrigerated
+                                </span>
+                              )}
+                              {vehicle.hazardous_materials && (
+                                <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                                  Hazardous Materials
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
-                    <Switch
-                      checked={availabilitySettings.is_available}
-                      onCheckedChange={(value) => handleAvailabilityChange("is_available", value)}
-                    />
-                  </div>
+                  ) : (
+                    <div className="text-center py-6 bg-gray-50 rounded-md border border-dashed border-gray-300">
+                      <Truck className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+                      <p className="text-gray-500">You haven't added any vehicles yet</p>
+                    </div>
+                  )}
                   
                   <Separator />
                   
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Shipment Types</h4>
+                  <form onSubmit={handleAddVehicle} className="space-y-4">
+                    <h3 className="text-lg font-medium flex items-center gap-2">
+                      <Plus className="h-4 w-4" />
+                      Add New Vehicle
+                    </h3>
                     
-                    <div className="flex items-center justify-between">
-                      <Label>Accept International Shipments</Label>
-                      <Switch
-                        checked={availabilitySettings.accept_international}
-                        onCheckedChange={(value) => handleAvailabilityChange("accept_international", value)}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label>Accept Fragile Items</Label>
-                      <Switch
-                        checked={availabilitySettings.accept_fragile}
-                        onCheckedChange={(value) => handleAvailabilityChange("accept_fragile", value)}
-                      />
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Label>Accept Express Delivery</Label>
-                      <Switch
-                        checked={availabilitySettings.accept_express}
-                        onCheckedChange={(value) => handleAvailabilityChange("accept_express", value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="space-y-4">
-                    <h4 className="font-medium">Working Hours</h4>
-                    
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="working_hours_start">Start Time</Label>
+                        <Label htmlFor="vehicle_type">Vehicle Type *</Label>
                         <Input
-                          id="working_hours_start"
-                          type="time"
-                          value={availabilitySettings.working_hours_start}
-                          onChange={(e) => handleAvailabilityChange("working_hours_start", e.target.value)}
+                          id="vehicle_type"
+                          placeholder="e.g. Truck, Van, Motorcycle"
+                          value={newVehicle.vehicle_type}
+                          onChange={(e) => setNewVehicle({ ...newVehicle, vehicle_type: e.target.value })}
+                          required
                         />
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="working_hours_end">End Time</Label>
+                        <Label htmlFor="vehicle_registration">Registration Number *</Label>
                         <Input
-                          id="working_hours_end"
-                          type="time"
-                          value={availabilitySettings.working_hours_end}
-                          onChange={(e) => handleAvailabilityChange("working_hours_end", e.target.value)}
+                          id="vehicle_registration"
+                          placeholder="Registration/License Plate"
+                          value={newVehicle.vehicle_registration}
+                          onChange={(e) => setNewVehicle({ ...newVehicle, vehicle_registration: e.target.value })}
+                          required
                         />
                       </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="max_weight">Max Weight (kg)</Label>
+                        <Input
+                          id="max_weight"
+                          type="number"
+                          step="0.1"
+                          placeholder="Maximum weight capacity"
+                          value={newVehicle.max_weight}
+                          onChange={(e) => setNewVehicle({ ...newVehicle, max_weight: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div className="grid grid-cols-3 gap-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="max_length">Length (m)</Label>
+                          <Input
+                            id="max_length"
+                            type="number"
+                            step="0.1"
+                            placeholder="Length"
+                            value={newVehicle.max_length}
+                            onChange={(e) => setNewVehicle({ ...newVehicle, max_length: e.target.value })}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="max_width">Width (m)</Label>
+                          <Input
+                            id="max_width"
+                            type="number"
+                            step="0.1"
+                            placeholder="Width"
+                            value={newVehicle.max_width}
+                            onChange={(e) => setNewVehicle({ ...newVehicle, max_width: e.target.value })}
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="max_height">Height (m)</Label>
+                          <Input
+                            id="max_height"
+                            type="number"
+                            step="0.1"
+                            placeholder="Height"
+                            value={newVehicle.max_height}
+                            onChange={(e) => setNewVehicle({ ...newVehicle, max_height: e.target.value })}
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  
-                  <Button onClick={handleSaveProfile}>
-                    Save Availability Settings
-                  </Button>
+                    
+                    <div className="flex flex-col sm:flex-row gap-4 sm:items-center">
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="refrigerated"
+                          checked={newVehicle.refrigerated}
+                          onCheckedChange={(checked) => setNewVehicle({ ...newVehicle, refrigerated: checked })}
+                        />
+                        <Label htmlFor="refrigerated">Refrigerated</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <Switch
+                          id="hazardous"
+                          checked={newVehicle.hazardous_materials}
+                          onCheckedChange={(checked) => setNewVehicle({ ...newVehicle, hazardous_materials: checked })}
+                        />
+                        <Label htmlFor="hazardous">Hazardous Materials</Label>
+                      </div>
+                    </div>
+                    
+                    <Button type="submit">Add Vehicle</Button>
+                  </form>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="location">
+            <LiveLocationTracker transporterId={userId} />
+          </TabsContent>
+          
+          <TabsContent value="settings">
+            <Card>
+              <CardHeader>
+                <CardTitle>Account Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-gray-500">
+                  Account settings can be managed from your profile page.
+                </p>
+                <Button className="mt-4" onClick={() => window.location.href = "/dashboard"}>
+                  Go to Dashboard
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

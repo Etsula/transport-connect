@@ -100,13 +100,15 @@ const MessageActions = ({
 
   const handleReportMessage = async () => {
     try {
-      // Add report to a reports table (this would need to be created)
-      await supabase.from('message_reports').insert([{
+      const { error } = await supabase.from('message_reports').insert([{
         message_id: messageId,
         shipment_id: shipmentId,
+        reporter_id: (await supabase.auth.getUser()).data.user?.id,
         reason: "Inappropriate or suspicious content",
         status: "pending_review"
       }]);
+
+      if (error) throw error;
 
       toast({
         title: "Report submitted",

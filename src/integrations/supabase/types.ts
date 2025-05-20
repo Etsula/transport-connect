@@ -219,6 +219,54 @@ export type Database = {
         }
         Relationships: []
       }
+      message_reports: {
+        Row: {
+          created_at: string
+          id: string
+          message_id: string
+          reason: string
+          reporter_id: string
+          shipment_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message_id: string
+          reason: string
+          reporter_id: string
+          shipment_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message_id?: string
+          reason?: string
+          reporter_id?: string
+          shipment_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reports_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "shipment_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_reports_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       package_types: {
         Row: {
           created_at: string | null
@@ -373,6 +421,7 @@ export type Database = {
           customs_description: string | null
           customs_value: number | null
           delivery_location: string
+          delivery_urgency: string | null
           description: string | null
           destination_country: string | null
           dimensions: string | null
@@ -382,6 +431,7 @@ export type Database = {
           origin_country: string | null
           package_type: string | null
           pickup_location: string
+          required_vehicle_type: string | null
           requires_documents: boolean | null
           shipper_id: string
           shipping_carrier: string | null
@@ -396,6 +446,7 @@ export type Database = {
           customs_description?: string | null
           customs_value?: number | null
           delivery_location: string
+          delivery_urgency?: string | null
           description?: string | null
           destination_country?: string | null
           dimensions?: string | null
@@ -405,6 +456,7 @@ export type Database = {
           origin_country?: string | null
           package_type?: string | null
           pickup_location: string
+          required_vehicle_type?: string | null
           requires_documents?: boolean | null
           shipper_id: string
           shipping_carrier?: string | null
@@ -419,6 +471,7 @@ export type Database = {
           customs_description?: string | null
           customs_value?: number | null
           delivery_location?: string
+          delivery_urgency?: string | null
           description?: string | null
           destination_country?: string | null
           dimensions?: string | null
@@ -428,6 +481,7 @@ export type Database = {
           origin_country?: string | null
           package_type?: string | null
           pickup_location?: string
+          required_vehicle_type?: string | null
           requires_documents?: boolean | null
           shipper_id?: string
           shipping_carrier?: string | null
@@ -476,6 +530,134 @@ export type Database = {
           supports_international?: boolean | null
           tracking_available?: boolean | null
           transit_time_days?: number | null
+        }
+        Relationships: []
+      }
+      transporter_locations: {
+        Row: {
+          accuracy: number | null
+          id: string
+          is_tracking: boolean | null
+          latitude: number
+          longitude: number
+          shipment_id: string | null
+          timestamp: string | null
+          transporter_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          accuracy?: number | null
+          id?: string
+          is_tracking?: boolean | null
+          latitude: number
+          longitude: number
+          shipment_id?: string | null
+          timestamp?: string | null
+          transporter_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          accuracy?: number | null
+          id?: string
+          is_tracking?: boolean | null
+          latitude?: number
+          longitude?: number
+          shipment_id?: string | null
+          timestamp?: string | null
+          transporter_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transporter_locations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transporter_vehicles: {
+        Row: {
+          created_at: string
+          hazardous_materials: boolean | null
+          id: string
+          insurance_valid_until: string | null
+          max_height: number | null
+          max_length: number | null
+          max_volume: number | null
+          max_weight: number | null
+          max_width: number | null
+          refrigerated: boolean | null
+          transporter_id: string
+          updated_at: string
+          vehicle_registration: string | null
+          vehicle_type: string
+        }
+        Insert: {
+          created_at?: string
+          hazardous_materials?: boolean | null
+          id?: string
+          insurance_valid_until?: string | null
+          max_height?: number | null
+          max_length?: number | null
+          max_volume?: number | null
+          max_weight?: number | null
+          max_width?: number | null
+          refrigerated?: boolean | null
+          transporter_id: string
+          updated_at?: string
+          vehicle_registration?: string | null
+          vehicle_type: string
+        }
+        Update: {
+          created_at?: string
+          hazardous_materials?: boolean | null
+          id?: string
+          insurance_valid_until?: string | null
+          max_height?: number | null
+          max_length?: number | null
+          max_volume?: number | null
+          max_weight?: number | null
+          max_width?: number | null
+          refrigerated?: boolean | null
+          transporter_id?: string
+          updated_at?: string
+          vehicle_registration?: string | null
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
+      verification: {
+        Row: {
+          created_at: string
+          documents: Json | null
+          id: string
+          rejection_reason: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          verification_date: string | null
+        }
+        Insert: {
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          verification_date?: string | null
+        }
+        Update: {
+          created_at?: string
+          documents?: Json | null
+          id?: string
+          rejection_reason?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verification_date?: string | null
         }
         Relationships: []
       }
