@@ -36,7 +36,7 @@ interface Bid {
   };
   verification?: {
     status: string;
-  };
+  } | null;
   averageRating?: number | null;
 }
 
@@ -60,9 +60,6 @@ const ShipmentBids = ({ shipmentId, onBidAccepted }: ShipmentBidsProps) => {
           profiles:transporter_id(
             company_name,
             id
-          ),
-          verification:transporter_id(
-            status
           )
         `)
         .eq("shipment_id", shipmentId)
@@ -70,40 +67,51 @@ const ShipmentBids = ({ shipmentId, onBidAccepted }: ShipmentBidsProps) => {
       
       if (error) throw error;
       
-      // Fetch transporter ratings
+      // Fetch verification status separately
       if (data && data.length > 0) {
         const transporterIds = data.map(bid => bid.transporter_id);
         
-        const { data: ratingsData, error: ratingsError } = await supabase
+        // Fetch verification data
+        const { data: verificationData } = await supabase
+          .from("verification")
+          .select("user_id, status")
+          .in("user_id", transporterIds);
+        
+        // Fetch ratings
+        const { data: ratingsData } = await supabase
           .from("reviews")
           .select("reviewed_id, rating")
           .in("reviewed_id", transporterIds);
           
-        if (!ratingsError && ratingsData) {
-          // Calculate average rating for each transporter
-          const ratingsByTransporter: Record<string, { total: number, count: number }> = {};
-          
-          ratingsData.forEach(rating => {
-            if (!ratingsByTransporter[rating.reviewed_id]) {
-              ratingsByTransporter[rating.reviewed_id] = { total: 0, count: 0 };
-            }
-            
-            ratingsByTransporter[rating.reviewed_id].total += rating.rating;
-            ratingsByTransporter[rating.reviewed_id].count += 1;
-          });
-          
-          // Add ratings to bid data
-          data.forEach(bid => {
-            const transporterRating = ratingsByTransporter[bid.transporter_id];
-            
-            bid.averageRating = transporterRating 
-              ? +(transporterRating.total / transporterRating.count).toFixed(1) 
-              : null;
-          });
-        }
+        // Create verification lookup
+        const verificationByTransporter: Record<string, { status: string }> = {};
+        verificationData?.forEach(verification => {
+          verificationByTransporter[verification.user_id] = { status: verification.status };
+        });
+        
+        // Create ratings lookup
+        const ratingsByTransporter: Record<string, { total: number, count: number }> = {};
+        ratingsData?.forEach(rating => {
+          if (!ratingsByTransporter[rating.reviewed_id]) {
+            ratingsByTransporter[rating.reviewed_id] = { total: 0, count: 0 };
+          }
+          ratingsByTransporter[rating.reviewed_id].total += rating.rating;
+          ratingsByTransporter[rating.reviewed_id].count += 1;
+        });
+        
+        // Add verification and ratings to bid data
+        const enhancedBids: Bid[] = data.map(bid => ({
+          ...bid,
+          verification: verificationByTransporter[bid.transporter_id] || null,
+          averageRating: ratingsByTransporter[bid.transporter_id] 
+            ? +(ratingsByTransporter[bid.transporter_id].total / ratingsByTransporter[bid.transporter_id].count).toFixed(1)
+            : null
+        }));
+        
+        setBids(enhancedBids);
+      } else {
+        setBids(data || []);
       }
-      
-      setBids(data || []);
     } catch (error: any) {
       console.error("Error fetching bids:", error);
       toast({
@@ -175,7 +183,7 @@ const ShipmentBids = ({ shipmentId, onBidAccepted }: ShipmentBidsProps) => {
     }
   };
 
-  const renderVerificationBadge = (bid: any) => {
+  const renderVerificationBadge = (bid: Bid) => {
     if (!bid.verification || !bid.verification.status) {
       return (
         <Badge className="bg-red-100 text-red-800">Unverified</Badge>

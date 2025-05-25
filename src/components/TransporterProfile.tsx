@@ -35,7 +35,7 @@ interface Review {
   created_at: string;
   reviewer_id: string;
   shipment_id: string;
-  profiles?: {
+  reviewer_profile?: {
     company_name: string | null;
   };
 }
@@ -68,26 +68,32 @@ const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProf
           
         const verificationStatus = verificationError ? "unverified" : verificationData?.status || "unverified";
         
-        // Fetch ratings
-        const { data: ratingsData, error: ratingsError } = await supabase
-          .rpc("get_transporter_rating", { transporter_id: transporterId });
-          
-        const ratingAverage = ratingsError || ratingsData === null ? 0 : ratingsData;
-        
         // Fetch completed shipments
-        const { count: completedShipments, error: shipmentError } = await supabase
+        const { count: completedShipments } = await supabase
           .from("shipments")
           .select("id", { count: 'exact' })
           .eq("assigned_transporter_id", transporterId)
           .eq("status", "completed");
           
         // Fetch successful deliveries (on-time)
-        const { count: successfulDeliveries, error: deliveryError } = await supabase
+        const { count: successfulDeliveries } = await supabase
           .from("shipments")
           .select("id", { count: 'exact' })
           .eq("assigned_transporter_id", transporterId)
           .eq("status", "completed")
           .eq("delivered_on_time", true);
+
+        // Fetch reviews and calculate average rating
+        const { data: reviewsData } = await supabase
+          .from("reviews")
+          .select("rating")
+          .eq("reviewed_id", transporterId);
+
+        let ratingAverage = 0;
+        if (reviewsData && reviewsData.length > 0) {
+          const totalRating = reviewsData.reduce((sum, review) => sum + review.rating, 0);
+          ratingAverage = totalRating / reviewsData.length;
+        }
           
         // Combine the data
         setTransporter({
@@ -96,7 +102,7 @@ const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProf
           created_at: profileData.created_at,
           phone: profileData.phone || "",
           verification_status: verificationStatus,
-          rating_average: ratingAverage as number,
+          rating_average: ratingAverage,
           completed_shipments: completedShipments || 0,
           successful_deliveries: successfulDeliveries || 0,
           vehicle_types: ["Truck", "Van", "Motorcycle"], // This would come from a vehicles table
@@ -104,8 +110,8 @@ const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProf
           recent_locations: ["Nairobi", "Mombasa", "Kisumu"] // This would come from tracking history
         });
         
-        // Fetch reviews
-        const { data: reviewsData, error: reviewsError } = await supabase
+        // Fetch reviews with reviewer information
+        const { data: reviewsWithProfiles } = await supabase
           .from("reviews")
           .select(`
             id, 
@@ -113,15 +119,27 @@ const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProf
             comment, 
             created_at,
             reviewer_id,
-            shipment_id,
-            profiles:reviewer_id(company_name)
+            shipment_id
           `)
           .eq("reviewed_id", transporterId)
           .order("created_at", { ascending: false })
           .limit(5);
           
-        if (!reviewsError && reviewsData) {
-          setReviews(reviewsData);
+        if (reviewsWithProfiles) {
+          // Fetch reviewer profiles separately
+          const reviewerIds = reviewsWithProfiles.map(review => review.reviewer_id);
+          const { data: reviewerProfiles } = await supabase
+            .from("profiles")
+            .select("id, company_name")
+            .in("id", reviewerIds);
+
+          // Combine reviews with profiles
+          const enhancedReviews: Review[] = reviewsWithProfiles.map(review => ({
+            ...review,
+            reviewer_profile: reviewerProfiles?.find(profile => profile.id === review.reviewer_id) || null
+          }));
+
+          setReviews(enhancedReviews);
         }
       } catch (error) {
         console.error("Error fetching transporter data:", error);
@@ -355,7 +373,7 @@ const TransporterProfile = ({ transporterId, onContactRequest }: TransporterProf
                   <div key={review.id} className="border-b pb-3 last:border-0">
                     <div className="flex justify-between items-center mb-1">
                       <div className="flex items-center">
-                        <p className="font-medium">{review.profiles?.company_name || "Anonymous"}</p>
+                        <p className="font-medium">{review.reviewer_profile?.company_name || "Anonymous"}</p>
                       </div>
                       <div className="flex items-center">
                         {renderStars(review.rating)}
