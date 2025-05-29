@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -37,6 +36,16 @@ const QuickActions = ({ userType }: QuickActionsProps) => {
       <Link to="/subscription">
         <Button variant="outline" className="w-full">
           Subscription & API Management
+        </Button>
+      </Link>
+      <Link to="/api-management">
+        <Button variant="outline" className="w-full">
+          API Management Portal
+        </Button>
+      </Link>
+      <Link to="/developer-portal">
+        <Button variant="outline" className="w-full">
+          Developer Portal
         </Button>
       </Link>
     </div>

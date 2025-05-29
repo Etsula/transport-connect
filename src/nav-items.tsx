@@ -1,4 +1,3 @@
-
 import { HomeIcon, UserIcon, ShieldIcon, FileTextIcon, GlobeIcon, MessageSquareIcon, PackageIcon, TruckIcon, DollarSignIcon } from "lucide-react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -20,6 +19,8 @@ import TermsOfService from "./pages/TermsOfService";
 import Accessibility from "./pages/Accessibility";
 import ResetPassword from "./pages/ResetPassword";
 import Subscription from "./pages/Subscription";
+import APIManagement from "./pages/APIManagement";
+import DeveloperPortal from "./pages/DeveloperPortal";
 
 export const navItems = [
   {
@@ -147,5 +148,17 @@ export const navItems = [
     to: "/subscription",
     icon: <DollarSignIcon className="h-4 w-4" />,
     page: <Subscription />,
+  },
+  {
+    title: "API Management",
+    to: "/api-management",
+    icon: <DollarSignIcon className="h-4 w-4" />,
+    page: <APIManagement />,
+  },
+  {
+    title: "Developer Portal",
+    to: "/developer-portal", 
+    icon: <FileTextIcon className="h-4 w-4" />,
+    page: <DeveloperPortal />,
   },
 ];
