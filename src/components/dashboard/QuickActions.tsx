@@ -34,6 +34,11 @@ const QuickActions = ({ userType }: QuickActionsProps) => {
           Message Center
         </Button>
       </Link>
+      <Link to="/subscription">
+        <Button variant="outline" className="w-full">
+          Subscription & API Management
+        </Button>
+      </Link>
     </div>
   );
 };
