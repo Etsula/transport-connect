@@ -16,9 +16,10 @@ const APIKeyGenerator = () => {
   const [environment, setEnvironment] = useState<'prod' | 'test' | 'dev'>('prod');
   const [tier, setTier] = useState<'starter' | 'business' | 'enterprise'>('starter');
   const [generatedKey, setGeneratedKey] = useState<string>('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  const handleGenerateKey = () => {
+  const handleGenerateKey = async () => {
     if (!clientName.trim() || !clientEmail.trim()) {
       toast({
         title: "Error",
@@ -28,13 +29,24 @@ const APIKeyGenerator = () => {
       return;
     }
 
-    const newKey = APIKeyManager.generateAPIKey(environment);
-    setGeneratedKey(newKey);
-    
-    toast({
-      title: "API Key Generated",
-      description: "New API key has been created successfully"
-    });
+    setIsGenerating(true);
+    try {
+      const newKey = APIKeyManager.generateAPIKey(environment);
+      setGeneratedKey(newKey);
+      
+      toast({
+        title: "API Key Generated",
+        description: "New API key has been created successfully"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate API key",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyToClipboard = (key: string) => {
@@ -117,8 +129,8 @@ const APIKeyGenerator = () => {
             </div>
           </div>
 
-          <Button onClick={handleGenerateKey} className="w-full">
-            Generate API Key
+          <Button onClick={handleGenerateKey} disabled={isGenerating} className="w-full">
+            {isGenerating ? 'Generating...' : 'Generate API Key'}
           </Button>
 
           {generatedKey && (
