@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -14,7 +14,18 @@ interface UserData {
   };
 }
 
-export const useAuth = () => {
+interface AuthContextType {
+  userData: UserData;
+  loading: boolean;
+  authenticated: boolean;
+  signOut: () => Promise<void>;
+  requireAuth: () => boolean;
+  refreshProfile: () => void;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [userData, setUserData] = useState<UserData>({
@@ -120,12 +131,32 @@ export const useAuth = () => {
     return true;
   };
 
-  return {
+  const refreshProfile = () => {
+    if (userData.id) {
+      fetchUserProfile(userData.id);
+    }
+  };
+
+  const value: AuthContextType = {
     userData,
     loading,
     authenticated,
     signOut,
     requireAuth,
-    refreshProfile: () => userData.id && fetchUserProfile(userData.id)
+    refreshProfile
   };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
