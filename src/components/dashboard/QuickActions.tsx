@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,43 +10,56 @@ interface QuickActionsProps {
 const QuickActions = ({ userType }: QuickActionsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <Link to="/marketplace">
+        <Button className="w-full bg-primary hover:bg-primary/90">
+          Browse Marketplace
+        </Button>
+      </Link>
+      
       {userType === "shipper" && (
         <Link to="/create-shipment">
           <Button className="w-full bg-primary hover:bg-primary/90">
-            Create New Shipment
+            Post New Shipment
           </Button>
         </Link>
       )}
+      
       {userType === "transporter" && (
-        <Link to="/find-shipments">
-          <Button className="w-full bg-primary hover:bg-primary/90">
-            Find Available Shipments
-          </Button>
-        </Link>
+        <>
+          <Link to="/find-shipments">
+            <Button className="w-full bg-primary hover:bg-primary/90">
+              Find Available Jobs
+            </Button>
+          </Link>
+          <Link to="/earnings">
+            <Button variant="outline" className="w-full">
+              View Earnings
+            </Button>
+          </Link>
+        </>
       )}
+      
+      <Link to="/referrals">
+        <Button variant="outline" className="w-full">
+          Referral Program
+        </Button>
+      </Link>
+      
       <Link to="/international-shipping">
         <Button variant="outline" className="w-full">
-          International Shipping Options
+          International Options
         </Button>
       </Link>
-      <Link to="/messaging">
-        <Button variant="outline" className="w-full">
-          Message Center
-        </Button>
-      </Link>
+      
       <Link to="/subscription">
         <Button variant="outline" className="w-full">
-          Subscription & API Management
+          API & Subscription
         </Button>
       </Link>
-      <Link to="/api-management">
-        <Button variant="outline" className="w-full">
-          API Management Portal
-        </Button>
-      </Link>
+      
       <Link to="/developer-portal">
         <Button variant="outline" className="w-full">
-          Developer Portal
+          Developer Tools
         </Button>
       </Link>
     </div>
