@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -191,26 +190,26 @@ const ShipmentMarketplace = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Marketplace Guidelines</CardTitle>
+          <CardTitle>Updated Commission Structure</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <h4 className="font-semibold mb-2">For Transporters:</h4>
+              <h4 className="font-semibold mb-2">Platform Fees (Reduced):</h4>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• Bid competitively but fairly</li>
-                <li>• Only bid on routes you can handle</li>
-                <li>• Maintain good ratings for more opportunities</li>
-                <li>• Communicate clearly with shippers</li>
+                <li>• Local deliveries: 12% platform fee (was 15%)</li>
+                <li>• International: 8% platform fee (was 10%)</li>
+                <li>• Bulk shipments (5+): Additional 2% discount</li>
+                <li>• Verified transporters: 1% fee reduction</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-semibold mb-2">Commission Structure:</h4>
+              <h4 className="font-semibold mb-2">Payment Protection:</h4>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• Local deliveries: 15% platform fee</li>
-                <li>• International: 10% platform fee</li>
-                <li>• Referral bonus: KSh 200 per successful referral</li>
-                <li>• Premium transporters: Reduced fees</li>
+                <li>• Payments held in secure escrow</li>
+                <li>• Released upon delivery confirmation</li>
+                <li>• Automatic commission deduction</li>
+                <li>• Instant payout to transporters</li>
               </ul>
             </div>
           </div>

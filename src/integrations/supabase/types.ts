@@ -219,6 +219,51 @@ export type Database = {
         }
         Relationships: []
       }
+      international_capabilities: {
+        Row: {
+          created_at: string
+          customs_license_expiry: string | null
+          customs_license_number: string | null
+          id: string
+          supports_international: boolean | null
+          transporter_id: string | null
+          updated_at: string
+          verification_documents: Json | null
+          verification_status: string | null
+          verified_at: string | null
+          verified_by: string | null
+          verified_countries: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          customs_license_expiry?: string | null
+          customs_license_number?: string | null
+          id?: string
+          supports_international?: boolean | null
+          transporter_id?: string | null
+          updated_at?: string
+          verification_documents?: Json | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verified_countries?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          customs_license_expiry?: string | null
+          customs_license_number?: string | null
+          id?: string
+          supports_international?: boolean | null
+          transporter_id?: string | null
+          updated_at?: string
+          verification_documents?: Json | null
+          verification_status?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+          verified_countries?: string[] | null
+        }
+        Relationships: []
+      }
       message_reports: {
         Row: {
           created_at: string
@@ -300,6 +345,65 @@ export type Database = {
         }
         Relationships: []
       }
+      payments_escrow: {
+        Row: {
+          created_at: string
+          escrowed_at: string | null
+          id: string
+          payment_method: string | null
+          payment_status: string | null
+          platform_commission: number
+          released_at: string | null
+          shipment_id: string | null
+          shipper_id: string | null
+          total_amount: number
+          transaction_id: string | null
+          transporter_id: string | null
+          transporter_payout: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          escrowed_at?: string | null
+          id?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          platform_commission: number
+          released_at?: string | null
+          shipment_id?: string | null
+          shipper_id?: string | null
+          total_amount: number
+          transaction_id?: string | null
+          transporter_id?: string | null
+          transporter_payout: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          escrowed_at?: string | null
+          id?: string
+          payment_method?: string | null
+          payment_status?: string | null
+          platform_commission?: number
+          released_at?: string | null
+          shipment_id?: string | null
+          shipper_id?: string | null
+          total_amount?: number
+          transaction_id?: string | null
+          transporter_id?: string | null
+          transporter_payout?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_escrow_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company_name: string | null
@@ -324,6 +428,81 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_type?: string
+        }
+        Relationships: []
+      }
+      referral_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          commission_amount: number
+          commission_duration_months: number | null
+          commission_percentage: number | null
+          created_at: string
+          first_transaction_date: string | null
+          id: string
+          referral_code: string
+          referral_type: string
+          referred_user_id: string | null
+          referrer_id: string | null
+          signup_date: string | null
+          status: string | null
+          total_earnings: number | null
+          updated_at: string
+        }
+        Insert: {
+          commission_amount: number
+          commission_duration_months?: number | null
+          commission_percentage?: number | null
+          created_at?: string
+          first_transaction_date?: string | null
+          id?: string
+          referral_code: string
+          referral_type: string
+          referred_user_id?: string | null
+          referrer_id?: string | null
+          signup_date?: string | null
+          status?: string | null
+          total_earnings?: number | null
+          updated_at?: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_duration_months?: number | null
+          commission_percentage?: number | null
+          created_at?: string
+          first_transaction_date?: string | null
+          id?: string
+          referral_code?: string
+          referral_type?: string
+          referred_user_id?: string | null
+          referrer_id?: string | null
+          signup_date?: string | null
+          status?: string | null
+          total_earnings?: number | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -707,7 +886,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_referral_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
