@@ -264,6 +264,86 @@ export type Database = {
         }
         Relationships: []
       }
+      invoice_items: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          invoice_id: string | null
+          quantity: number | null
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          invoice_id?: string | null
+          quantity?: number | null
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          invoice_id?: string | null
+          quantity?: number | null
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          created_at: string
+          currency: string | null
+          due_date: string | null
+          id: string
+          invoice_number: string
+          paid_at: string | null
+          status: string | null
+          tax_amount: number | null
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number: string
+          paid_at?: string | null
+          status?: string | null
+          tax_amount?: number | null
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          currency?: string | null
+          due_date?: string | null
+          id?: string
+          invoice_number?: string
+          paid_at?: string | null
+          status?: string | null
+          tax_amount?: number | null
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       message_reports: {
         Row: {
           created_at: string
@@ -454,6 +534,53 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      referral_payouts: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          paypal_batch_id: string | null
+          paypal_payout_id: string | null
+          processed_at: string | null
+          referral_id: string | null
+          referrer_id: string | null
+          status: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          paypal_batch_id?: string | null
+          paypal_payout_id?: string | null
+          processed_at?: string | null
+          referral_id?: string | null
+          referrer_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          paypal_batch_id?: string | null
+          paypal_payout_id?: string | null
+          processed_at?: string | null
+          referral_id?: string | null
+          referrer_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_payouts_referral_id_fkey"
+            columns: ["referral_id"]
+            isOneToOne: false
+            referencedRelation: "referrals"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referrals: {
         Row: {
@@ -712,6 +839,68 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          id: string
+          net_amount: number
+          paypal_capture_id: string | null
+          paypal_order_id: string | null
+          paypal_status: string | null
+          platform_commission: number
+          referral_commission: number | null
+          shipment_id: string | null
+          status: string | null
+          transaction_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          net_amount: number
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          paypal_status?: string | null
+          platform_commission: number
+          referral_commission?: number | null
+          shipment_id?: string | null
+          status?: string | null
+          transaction_type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          id?: string
+          net_amount?: number
+          paypal_capture_id?: string | null
+          paypal_order_id?: string | null
+          paypal_status?: string | null
+          platform_commission?: number
+          referral_commission?: number | null
+          shipment_id?: string | null
+          status?: string | null
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transporter_locations: {
         Row: {
           accuracy: number | null
@@ -886,6 +1075,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_invoice_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
