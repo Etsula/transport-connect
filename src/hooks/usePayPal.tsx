@@ -3,25 +3,28 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 
 interface PayPalPayment {
   amount: number;
   currency?: string;
   shipmentId?: string;
   description?: string;
+  isInternational?: boolean;
 }
 
 export const usePayPal = () => {
   const { toast } = useToast();
   const { userData } = useAuth();
+  const { getCommissionRate, getReferralCommissionRate } = useSystemSettings();
   const [loading, setLoading] = useState(false);
 
   const createPayment = async (payment: PayPalPayment) => {
     try {
       setLoading(true);
 
-      // Calculate commission (12% local, 8% international)
-      const platformCommissionRate = 0.12; // Default to local rate
+      // Calculate commissions using system settings
+      const platformCommissionRate = getCommissionRate(payment.isInternational);
       const platformCommission = payment.amount * platformCommissionRate;
       
       // Calculate referral commission if user was referred
@@ -32,8 +35,12 @@ export const usePayPal = () => {
         .eq('status', 'active')
         .single();
 
+      const referralCommissionRate = referralData 
+        ? (referralData.commission_percentage / 100)
+        : getReferralCommissionRate();
+
       const referralCommission = referralData 
-        ? payment.amount * (referralData.commission_percentage / 100)
+        ? payment.amount * referralCommissionRate
         : 0;
 
       const netAmount = payment.amount - platformCommission - referralCommission;
@@ -76,6 +83,17 @@ export const usePayPal = () => {
         .update({ paypal_order_id: orderData.id })
         .eq('id', transaction.id);
 
+      // Create notification
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: userData.id,
+          title: 'Payment Initiated',
+          message: `Payment of $${payment.amount} has been initiated`,
+          type: 'info',
+          related_id: transaction.id
+        });
+
       // Redirect to PayPal approval URL
       const approvalUrl = orderData.links.find((link: any) => link.rel === 'approve')?.href;
       if (approvalUrl) {
@@ -111,6 +129,16 @@ export const usePayPal = () => {
         title: "Payment Successful",
         description: "Your payment has been processed successfully"
       });
+
+      // Create success notification
+      await supabase
+        .from('notifications')
+        .insert({
+          user_id: userData.id,
+          title: 'Payment Completed',
+          message: 'Your payment has been successfully processed',
+          type: 'success'
+        });
 
       return data;
     } catch (error) {

@@ -8,6 +8,7 @@ import StatsCards from "@/components/dashboard/StatsCards";
 import ShipmentsList from "@/components/dashboard/ShipmentsList";
 import QuickActions from "@/components/dashboard/QuickActions";
 import ShipmentTracking from "@/components/ShipmentTracking";
+import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 const Dashboard = () => {
   const { userData, loading: authLoading, signOut } = useAuth();
@@ -55,14 +56,21 @@ const Dashboard = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        <StatsCards 
-          shipments={shipments} 
-          loading={shipmentsLoading} 
-          userType={userData.userType} 
-        />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <div className="lg:col-span-2">
+            <StatsCards 
+              shipments={shipments} 
+              loading={shipmentsLoading} 
+              userType={userData.userType} 
+            />
+          </div>
+          <div>
+            <NotificationCenter />
+          </div>
+        </div>
 
         {userData.userType === "shipper" && shipments.length > 0 && (
-          <section className="mb-8 mt-8">
+          <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">Live Tracking</h2>
             <ShipmentTracking 
               shipmentId={demoTrackingData.shipmentId}
@@ -73,7 +81,7 @@ const Dashboard = () => {
           </section>
         )}
 
-        <section className="mb-8 mt-8">
+        <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">
             {userData.userType === "shipper" ? "Your Recent Shipments" : "Available Shipments"}
           </h2>
