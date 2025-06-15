@@ -1,20 +1,30 @@
 
 import React, { useState } from "react";
-import QrReader from "react-qr-reader";
+import QrScanner from "react-qr-scanner";
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
 interface ShipmentQRScannerProps {
   onConfirm: (shipmentId: string) => void;
 }
+
+const previewStyle = {
+  width: "100%",
+  minHeight: "220px",
+  borderRadius: "0.5rem"
+};
+
 const ShipmentQRScanner: React.FC<ShipmentQRScannerProps> = ({ onConfirm }) => {
   const [scanError, setScanError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleScan = (data: string | null) => {
+  const handleScan = (data: any) => {
     if (!data) return;
     try {
-      const parsed = JSON.parse(data);
+      // The QR scanner returns an object with .text, .data, or .code depending on the format
+      const value = typeof data === "string" ? data : data?.text || data?.data || data?.code;
+      if (!value) return;
+      const parsed = JSON.parse(value);
       if (
         parsed.type === "godsdelivered" &&
         typeof parsed.shipmentId === "string" &&
@@ -39,11 +49,12 @@ const ShipmentQRScanner: React.FC<ShipmentQRScannerProps> = ({ onConfirm }) => {
       <CardTitle className="text-center mt-4">Scan Delivery QR Code</CardTitle>
       <CardContent>
         <div className="mb-3">
-          <QrReader
+          <QrScanner
             delay={300}
             onError={handleError}
             onScan={handleScan}
-            style={{ width: "100%" }}
+            style={previewStyle}
+            facingMode="environment" // prefer back camera on mobile devices
           />
         </div>
         {scanError && <div className="text-red-500 text-sm">{scanError}</div>}
