@@ -1,60 +1,116 @@
 
-import { HomeIcon, Package, Users, MessageSquare, Settings, DollarSign, Share2, MapPin, Key, BookOpen, BarChart3 } from "lucide-react";
+import { HomeIcon, Users, Package, MessageSquare, Settings, Star, Globe, FileText, Shield, DollarSign, BarChart3, Navigation, Plane, MapPin } from "lucide-react";
 
+/**
+ * Central place for defining the navigation items. Used for navigation components and routing.
+ */
 export const navItems = [
+  {
+    title: "Home",
+    to: "/",
+    icon: <HomeIcon className="h-4 w-4" />,
+    variant: "default" as const,
+  },
   {
     title: "Dashboard",
     to: "/dashboard",
-    icon: <HomeIcon className="h-4 w-4" />,
-  },
-  {
-    title: "Marketplace",
-    to: "/marketplace", 
-    icon: <MapPin className="h-4 w-4" />,
+    icon: <BarChart3 className="h-4 w-4" />,
+    variant: "ghost" as const,
   },
   {
     title: "Create Shipment",
     to: "/create-shipment",
     icon: <Package className="h-4 w-4" />,
+    variant: "ghost" as const,
   },
   {
     title: "Find Shipments",
     to: "/find-shipments",
+    icon: <Package className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "Marketplace",
+    to: "/marketplace",
+    icon: <Globe className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "Messaging",
+    to: "/messaging",
+    icon: <MessageSquare className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "Navigation Hub",
+    to: "/navigation-hub",
+    icon: <Navigation className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "Traveler Portal",
+    to: "/traveler-portal",
+    icon: <Plane className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "Performance",
+    to: "/performance-dashboard",
+    icon: <BarChart3 className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "Referral Program",
+    to: "/referral-program",
     icon: <Users className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "International",
+    to: "/international-shipping",
+    icon: <Globe className="h-4 w-4" />,
+    variant: "ghost" as const,
   },
   {
     title: "Earnings",
-    to: "/earnings",
+    to: "/transporter-earnings",
     icon: <DollarSign className="h-4 w-4" />,
+    variant: "ghost" as const,
   },
   {
-    title: "Referrals",
-    to: "/referrals",
-    icon: <Share2 className="h-4 w-4" />,
+    title: "GDPR Compliance",
+    to: "/gdpr-compliance",
+    icon: <Shield className="h-4 w-4" />,
+    variant: "ghost" as const,
   },
   {
-    title: "Messages",
-    to: "/messaging",
-    icon: <MessageSquare className="h-4 w-4" />,
-  },
-  {
-    title: "International Shipping",
-    to: "/international-shipping",
-    icon: <Package className="h-4 w-4" />,
+    title: "Agent Management",
+    to: "/agent-management",
+    icon: <Users className="h-4 w-4" />,
+    variant: "ghost" as const,
   },
   {
     title: "API Management",
     to: "/api-management",
-    icon: <Key className="h-4 w-4" />,
-  },
-  {
-    title: "Developer Portal",
-    to: "/developer-portal",
-    icon: <BookOpen className="h-4 w-4" />,
+    icon: <FileText className="h-4 w-4" />,
+    variant: "ghost" as const,
   },
   {
     title: "Subscription",
     to: "/subscription",
-    icon: <BarChart3 className="h-4 w-4" />,
+    icon: <Star className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "Developer Portal",
+    to: "/developer-portal",
+    icon: <FileText className="h-4 w-4" />,
+    variant: "ghost" as const,
+  },
+  {
+    title: "Profile",
+    to: "/profile",
+    icon: <Settings className="h-4 w-4" />,
+    variant: "ghost" as const,
   },
 ];

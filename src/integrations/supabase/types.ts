@@ -234,6 +234,42 @@ export type Database = {
           },
         ]
       }
+      commission_structures: {
+        Row: {
+          base_commission: number | null
+          commission_percentage: number
+          created_at: string
+          id: string
+          is_active: boolean | null
+          min_deliveries_required: number | null
+          min_rating_required: number | null
+          referral_level: number
+          user_type: string
+        }
+        Insert: {
+          base_commission?: number | null
+          commission_percentage: number
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          min_deliveries_required?: number | null
+          min_rating_required?: number | null
+          referral_level: number
+          user_type: string
+        }
+        Update: {
+          base_commission?: number | null
+          commission_percentage?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          min_deliveries_required?: number | null
+          min_rating_required?: number | null
+          referral_level?: number
+          user_type?: string
+        }
+        Relationships: []
+      }
       delivery_charges: {
         Row: {
           base_price: number
@@ -347,6 +383,42 @@ export type Database = {
           id?: string
           name?: string
           required_for_countries?: string[] | null
+        }
+        Relationships: []
+      }
+      gdpr_requests: {
+        Row: {
+          created_at: string
+          download_url: string | null
+          expires_at: string | null
+          id: string
+          processed_at: string | null
+          request_type: string
+          requested_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          download_url?: string | null
+          expires_at?: string | null
+          id?: string
+          processed_at?: string | null
+          request_type: string
+          requested_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          download_url?: string | null
+          expires_at?: string | null
+          id?: string
+          processed_at?: string | null
+          request_type?: string
+          requested_at?: string
+          status?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -556,6 +628,48 @@ export type Database = {
         }
         Relationships: []
       }
+      offline_maps: {
+        Row: {
+          bounds_east: number
+          bounds_north: number
+          bounds_south: number
+          bounds_west: number
+          downloaded_at: string
+          file_size_mb: number | null
+          id: string
+          is_active: boolean | null
+          last_accessed: string | null
+          region_name: string
+          user_id: string
+        }
+        Insert: {
+          bounds_east: number
+          bounds_north: number
+          bounds_south: number
+          bounds_west: number
+          downloaded_at?: string
+          file_size_mb?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed?: string | null
+          region_name: string
+          user_id: string
+        }
+        Update: {
+          bounds_east?: number
+          bounds_north?: number
+          bounds_south?: number
+          bounds_west?: number
+          downloaded_at?: string
+          file_size_mb?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_accessed?: string | null
+          region_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       package_types: {
         Row: {
           created_at: string | null
@@ -681,6 +795,62 @@ export type Database = {
           },
         ]
       }
+      performance_metrics: {
+        Row: {
+          agent_id: string | null
+          average_rating: number | null
+          commission_earned: number | null
+          created_at: string
+          id: string
+          metric_type: string
+          metric_value: number
+          period_end: string
+          period_start: string
+          successful_deliveries: number | null
+          total_deliveries: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          average_rating?: number | null
+          commission_earned?: number | null
+          created_at?: string
+          id?: string
+          metric_type: string
+          metric_value: number
+          period_end: string
+          period_start: string
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          average_rating?: number | null
+          commission_earned?: number | null
+          created_at?: string
+          id?: string
+          metric_type?: string
+          metric_value?: number
+          period_end?: string
+          period_start?: string
+          successful_deliveries?: number | null
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "performance_metrics_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           company_name: string | null
@@ -705,6 +875,60 @@ export type Database = {
           phone?: string | null
           updated_at?: string
           user_type?: string
+        }
+        Relationships: []
+      }
+      referral_chains: {
+        Row: {
+          average_rating: number | null
+          can_refer: boolean | null
+          chain_id: string
+          chain_level: number
+          created_at: string
+          current_referrals: number | null
+          id: string
+          is_qualified: boolean | null
+          max_referrals: number | null
+          qualification_date: string | null
+          referred_by_code: string | null
+          referrer_id: string | null
+          total_deliveries: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_rating?: number | null
+          can_refer?: boolean | null
+          chain_id: string
+          chain_level: number
+          created_at?: string
+          current_referrals?: number | null
+          id?: string
+          is_qualified?: boolean | null
+          max_referrals?: number | null
+          qualification_date?: string | null
+          referred_by_code?: string | null
+          referrer_id?: string | null
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_rating?: number | null
+          can_refer?: boolean | null
+          chain_id?: string
+          chain_level?: number
+          created_at?: string
+          current_referrals?: number | null
+          id?: string
+          is_qualified?: boolean | null
+          max_referrals?: number | null
+          qualification_date?: string | null
+          referred_by_code?: string | null
+          referrer_id?: string | null
+          total_deliveries?: number | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -779,6 +1003,42 @@ export type Database = {
           },
         ]
       }
+      referral_qualifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_highly_rated: boolean | null
+          last_qualification_check: string | null
+          min_deliveries: number
+          min_rating: number
+          qualification_expires_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_highly_rated?: boolean | null
+          last_qualification_check?: string | null
+          min_deliveries?: number
+          min_rating?: number
+          qualification_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_highly_rated?: boolean | null
+          last_qualification_check?: string | null
+          min_deliveries?: number
+          min_rating?: number
+          qualification_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           commission_amount: number
@@ -830,6 +1090,45 @@ export type Database = {
         }
         Relationships: []
       }
+      regional_access: {
+        Row: {
+          access_level: string
+          country_code: string
+          expires_at: string | null
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          is_active: boolean | null
+          max_chain_distance: number | null
+          region: string | null
+          user_id: string
+        }
+        Insert: {
+          access_level: string
+          country_code: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_chain_distance?: number | null
+          region?: string | null
+          user_id: string
+        }
+        Update: {
+          access_level?: string
+          country_code?: string
+          expires_at?: string | null
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_chain_distance?: number | null
+          region?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       reviews: {
         Row: {
           comment: string | null
@@ -875,6 +1174,59 @@ export type Database = {
           },
           {
             foreignKeyName: "reviews_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      route_waypoints: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          distance_to_next: number | null
+          estimated_time_minutes: number | null
+          id: string
+          instruction: string | null
+          is_completed: boolean | null
+          latitude: number
+          longitude: number
+          sequence_order: number
+          shipment_id: string
+          transporter_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          distance_to_next?: number | null
+          estimated_time_minutes?: number | null
+          id?: string
+          instruction?: string | null
+          is_completed?: boolean | null
+          latitude: number
+          longitude: number
+          sequence_order: number
+          shipment_id: string
+          transporter_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          distance_to_next?: number | null
+          estimated_time_minutes?: number | null
+          id?: string
+          instruction?: string | null
+          is_completed?: boolean | null
+          latitude?: number
+          longitude?: number
+          sequence_order?: number
+          shipment_id?: string
+          transporter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "route_waypoints_shipment_id_fkey"
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
@@ -1267,6 +1619,57 @@ export type Database = {
         }
         Relationships: []
       }
+      travelers: {
+        Row: {
+          available_capacity_kg: number | null
+          created_at: string
+          current_rating: number | null
+          destination_country: string | null
+          id: string
+          is_active: boolean | null
+          is_verified: boolean | null
+          next_travel_date: string | null
+          origin_country: string | null
+          total_deliveries: number | null
+          travel_routes: Json | null
+          updated_at: string
+          user_id: string
+          verification_documents: Json | null
+        }
+        Insert: {
+          available_capacity_kg?: number | null
+          created_at?: string
+          current_rating?: number | null
+          destination_country?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          next_travel_date?: string | null
+          origin_country?: string | null
+          total_deliveries?: number | null
+          travel_routes?: Json | null
+          updated_at?: string
+          user_id: string
+          verification_documents?: Json | null
+        }
+        Update: {
+          available_capacity_kg?: number | null
+          created_at?: string
+          current_rating?: number | null
+          destination_country?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_verified?: boolean | null
+          next_travel_date?: string | null
+          origin_country?: string | null
+          total_deliveries?: number | null
+          travel_routes?: Json | null
+          updated_at?: string
+          user_id?: string
+          verification_documents?: Json | null
+        }
+        Relationships: []
+      }
       verification: {
         Row: {
           created_at: string
@@ -1353,6 +1756,14 @@ export type Database = {
       generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_referral_chain_distance: {
+        Args: { target_user_id: string; source_user_id: string }
+        Returns: number
+      }
+      update_referral_qualifications: {
+        Args: { user_id: string }
+        Returns: boolean
       }
     }
     Enums: {
