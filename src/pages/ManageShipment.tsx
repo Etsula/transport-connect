@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, Info, MapPin, MessageSquare, Package, Truck, Users } from "lucide-react";
-import NavigationMap from "@/components/NavigationMap";
+import { Info, Truck, MapPin, Users } from "lucide-react";
 import ShipmentBids from "@/components/ShipmentBids";
-import ShipmentMessaging from "@/components/ShipmentMessaging";
-import { Separator } from "@/components/ui/separator";
+import ShipmentHeader from "@/components/shipment/ShipmentHeader";
+import ShipmentDetailsTab from "@/components/shipment/ShipmentDetailsTab";
+import ShipmentTrackingTab from "@/components/shipment/ShipmentTrackingTab";
+import ShipmentActions from "@/components/shipment/ShipmentActions";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const ManageShipment = () => {
   const { id } = useParams<{ id: string }>();
@@ -105,12 +105,15 @@ const ManageShipment = () => {
   };
 
   const handleBidAccepted = () => {
-    // Refresh shipment data
     fetchShipmentDetails(userData.id || "");
     toast({
       title: "Bid accepted",
       description: "The shipment status has been updated",
     });
+  };
+
+  const handleStatusUpdate = () => {
+    fetchShipmentDetails(userData.id || "");
   };
 
   if (loading) {
@@ -150,32 +153,10 @@ const ManageShipment = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-2xl">{shipment.title}</CardTitle>
-                    <p className="text-gray-500 mt-1">Manage your shipment</p>
-                  </div>
-                  <Badge className={
-                    shipment.status === "open" ? "bg-green-500" :
-                    shipment.status === "assigned" ? "bg-blue-500" :
-                    shipment.status === "in_transit" ? "bg-purple-500" :
-                    shipment.status === "delivered" ? "bg-teal-500" :
-                    "bg-gray-500"
-                  }>
-                    {shipment.status === "open" ? "Open" : 
-                     shipment.status === "assigned" ? "Assigned" :
-                     shipment.status === "in_transit" ? "In Transit" :
-                     shipment.status === "delivered" ? "Delivered" : 
-                     shipment.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-            </Card>
+            <ShipmentHeader shipment={shipment} />
 
             <Tabs defaultValue="details" className="mt-6">
-              <TabsList className="grid grid-cols-4 w-full">
+              <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="details" className="flex items-center">
                   <Info className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Details</span>
@@ -188,99 +169,10 @@ const ManageShipment = () => {
                   <MapPin className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Tracking</span>
                 </TabsTrigger>
-                <TabsTrigger value="messages" className="flex items-center">
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  <span className="hidden sm:inline">Messages</span>
-                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="details">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold flex items-center">
-                          <Package className="h-4 w-4 mr-2" />
-                          Shipment Details
-                        </h3>
-                        <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <p className="text-gray-500 text-sm">Package Type</p>
-                            <p>{shipment.package_type || "Not specified"}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-sm">Weight</p>
-                            <p>{shipment.weight ? `${shipment.weight} kg` : "Not specified"}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-sm">Dimensions</p>
-                            <p>{shipment.dimensions || "Not specified"}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-sm">Budget</p>
-                            <p>{shipment.budget ? `$${shipment.budget}` : "Not specified"}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      <div>
-                        <h3 className="font-semibold flex items-center">
-                          <MapPin className="h-4 w-4 mr-2" />
-                          Locations
-                        </h3>
-                        <div className="mt-2 space-y-2">
-                          <div>
-                            <p className="text-gray-500 text-sm">Pickup Location</p>
-                            <p>{shipment.pickup_location}</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-sm">Delivery Location</p>
-                            <p>{shipment.delivery_location}</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {shipment.is_international && (
-                        <>
-                          <Separator />
-                          <div>
-                            <h3 className="font-semibold flex items-center">
-                              <Globe className="h-4 w-4 mr-2" />
-                              International Shipping Details
-                            </h3>
-                            <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div>
-                                <p className="text-gray-500 text-sm">Origin Country</p>
-                                <p>{shipment.origin_country || "Not specified"}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-sm">Destination Country</p>
-                                <p>{shipment.destination_country || "Not specified"}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-sm">Customs Value</p>
-                                <p>{shipment.customs_value ? `$${shipment.customs_value}` : "Not specified"}</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-sm">Requires Documents</p>
-                                <p>{shipment.requires_documents ? "Yes" : "No"}</p>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
-
-                      <Separator />
-
-                      <div>
-                        <h3 className="font-semibold">Description</h3>
-                        <p className="mt-2 text-gray-700">{shipment.description || "No description provided."}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ShipmentDetailsTab shipment={shipment} />
               </TabsContent>
               
               <TabsContent value="bids">
@@ -301,167 +193,16 @@ const ManageShipment = () => {
               </TabsContent>
               
               <TabsContent value="tracking">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Route Map</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[400px] rounded-md overflow-hidden">
-                      <NavigationMap 
-                        className="h-full w-full" 
-                        showTraffic={true}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="messages">
-                <Card>
-                  <CardContent className="pt-6">
-                    {userData.id && (
-                      <ShipmentMessaging
-                        shipmentId={shipment.id}
-                        shipmentTitle={shipment.title}
-                        currentUserId={userData.id}
-                        currentUserType="shipper"
-                      />
-                    )}
-                  </CardContent>
-                </Card>
+                <ShipmentTrackingTab />
               </TabsContent>
             </Tabs>
           </div>
 
           <div>
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipment Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => navigate(`/messages/${shipment.id}`)}
-                >
-                  <MessageSquare className="mr-2 h-4 w-4" />
-                  View All Messages
-                </Button>
-                
-                {shipment.status === "open" && (
-                  <Button 
-                    variant="destructive" 
-                    className="w-full"
-                    onClick={async () => {
-                      try {
-                        const { error } = await supabase
-                          .from("shipments")
-                          .update({ status: "cancelled" })
-                          .eq("id", shipment.id);
-                          
-                        if (error) throw error;
-                        
-                        toast({
-                          title: "Shipment cancelled",
-                          description: "The shipment has been cancelled successfully",
-                        });
-                        
-                        navigate("/dashboard");
-                      } catch (error: any) {
-                        console.error("Error cancelling shipment:", error);
-                        toast({
-                          title: "Error",
-                          description: "Failed to cancel shipment",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                  >
-                    Cancel Shipment
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-
-            {shipment.status === "assigned" && (
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>Update Status</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    className="w-full"
-                    onClick={async () => {
-                      try {
-                        const { error } = await supabase
-                          .from("shipments")
-                          .update({ status: "in_transit" })
-                          .eq("id", shipment.id);
-                          
-                        if (error) throw error;
-                        
-                        toast({
-                          title: "Status updated",
-                          description: "The shipment is now in transit",
-                        });
-                        
-                        setShipment({...shipment, status: "in_transit"});
-                      } catch (error: any) {
-                        console.error("Error updating shipment status:", error);
-                        toast({
-                          title: "Error",
-                          description: "Failed to update status",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                  >
-                    <Truck className="mr-2 h-4 w-4" />
-                    Mark as In Transit
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-            
-            {shipment.status === "in_transit" && (
-              <Card className="mt-6">
-                <CardHeader>
-                  <CardTitle>Update Status</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button 
-                    className="w-full"
-                    onClick={async () => {
-                      try {
-                        const { error } = await supabase
-                          .from("shipments")
-                          .update({ status: "delivered" })
-                          .eq("id", shipment.id);
-                          
-                        if (error) throw error;
-                        
-                        toast({
-                          title: "Status updated",
-                          description: "The shipment has been marked as delivered",
-                        });
-                        
-                        setShipment({...shipment, status: "delivered"});
-                      } catch (error: any) {
-                        console.error("Error updating shipment status:", error);
-                        toast({
-                          title: "Error",
-                          description: "Failed to update status",
-                          variant: "destructive",
-                        });
-                      }
-                    }}
-                  >
-                    <Package className="mr-2 h-4 w-4" />
-                    Mark as Delivered
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
+            <ShipmentActions 
+              shipment={shipment} 
+              onStatusUpdate={handleStatusUpdate}
+            />
           </div>
         </div>
       </div>
