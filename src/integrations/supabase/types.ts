@@ -270,6 +270,45 @@ export type Database = {
         }
         Relationships: []
       }
+      conditional_tracking: {
+        Row: {
+          activated_at: string
+          activated_by: string | null
+          deactivated_at: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          shipment_id: string | null
+          tracking_level: string
+          trigger_reason: string | null
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string
+          activated_by?: string | null
+          deactivated_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          shipment_id?: string | null
+          tracking_level?: string
+          trigger_reason?: string | null
+          user_id: string
+        }
+        Update: {
+          activated_at?: string
+          activated_by?: string | null
+          deactivated_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          shipment_id?: string | null
+          tracking_level?: string
+          trigger_reason?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       delivery_charges: {
         Row: {
           base_price: number
@@ -1462,6 +1501,75 @@ export type Database = {
         }
         Relationships: []
       }
+      tracking_audit: {
+        Row: {
+          access_reason: string | null
+          access_type: string
+          accessed_by: string | null
+          created_at: string
+          data_accessed: Json | null
+          id: string
+          ip_address: unknown | null
+          shipment_id: string | null
+          user_id: string
+        }
+        Insert: {
+          access_reason?: string | null
+          access_type: string
+          accessed_by?: string | null
+          created_at?: string
+          data_accessed?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          shipment_id?: string | null
+          user_id: string
+        }
+        Update: {
+          access_reason?: string | null
+          access_type?: string
+          accessed_by?: string | null
+          created_at?: string
+          data_accessed?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          shipment_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tracking_consent_log: {
+        Row: {
+          consent_given: boolean
+          consent_type: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          shipment_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          consent_given: boolean
+          consent_type: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          shipment_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          consent_given?: boolean
+          consent_type?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          shipment_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -1670,6 +1778,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_privacy_settings: {
+        Row: {
+          allow_extended_tracking: boolean | null
+          allow_location_tracking: boolean | null
+          created_at: string
+          data_retention_days: number | null
+          emergency_tracking_consent: boolean | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_extended_tracking?: boolean | null
+          allow_location_tracking?: boolean | null
+          created_at?: string
+          data_retention_days?: number | null
+          emergency_tracking_consent?: boolean | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_extended_tracking?: boolean | null
+          allow_location_tracking?: boolean | null
+          created_at?: string
+          data_retention_days?: number | null
+          emergency_tracking_consent?: boolean | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       verification: {
         Row: {
           created_at: string
@@ -1749,6 +1890,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_enable_enhanced_tracking: {
+        Args: { target_user_id: string; reason: string }
+        Returns: boolean
+      }
       generate_invoice_number: {
         Args: Record<PropertyKey, never>
         Returns: string

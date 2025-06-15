@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -193,7 +192,7 @@ const ManageShipment = () => {
               </TabsContent>
               
               <TabsContent value="tracking">
-                <ShipmentTrackingTab />
+                <ShipmentTrackingTab shipment={shipment} />
               </TabsContent>
             </Tabs>
           </div>
