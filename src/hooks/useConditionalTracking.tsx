@@ -46,7 +46,14 @@ export const useConditionalTracking = (shipmentId?: string) => {
       const { data, error } = await query.order('activated_at', { ascending: false });
 
       if (error) throw error;
-      setTrackingStates(data || []);
+      
+      // Type-safe conversion of the data
+      const typedData: ConditionalTracking[] = (data || []).map(item => ({
+        ...item,
+        tracking_level: item.tracking_level as 'minimal' | 'enhanced' | 'emergency'
+      }));
+      
+      setTrackingStates(typedData);
     } catch (error) {
       console.error('Error fetching tracking states:', error);
     } finally {
