@@ -7,14 +7,14 @@ import { useToast } from '@/hooks/use-toast';
 interface ConditionalTracking {
   id: string;
   user_id: string;
-  shipment_id?: string;
+  shipment_id?: string | null;
   tracking_level: 'minimal' | 'enhanced' | 'emergency';
-  trigger_reason?: string;
+  trigger_reason?: string | null;
   activated_at: string;
-  deactivated_at?: string;
-  activated_by?: string;
+  deactivated_at?: string | null;
+  activated_by?: string | null;
   is_active: boolean;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, any> | null;
 }
 
 export const useConditionalTracking = (shipmentId?: string) => {
@@ -44,13 +44,15 @@ export const useConditionalTracking = (shipmentId?: string) => {
       }
 
       const { data, error } = await query.order('activated_at', { ascending: false });
-
       if (error) throw error;
       
-      // Type-safe conversion of the data
-      const typedData: ConditionalTracking[] = (data || []).map(item => ({
+      // Adjust typing to prevent TypeScript error regarding 'metadata'.
+      const typedData: ConditionalTracking[] = (data || []).map((item: any) => ({
         ...item,
-        tracking_level: item.tracking_level as 'minimal' | 'enhanced' | 'emergency'
+        tracking_level: item.tracking_level as 'minimal' | 'enhanced' | 'emergency',
+        metadata: (typeof item.metadata === "object" && item.metadata !== null)
+          ? item.metadata
+          : null
       }));
       
       setTrackingStates(typedData);

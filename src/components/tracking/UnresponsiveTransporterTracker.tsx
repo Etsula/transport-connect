@@ -54,12 +54,24 @@ const UnresponsiveTransporterTracker = ({
 
       if (profileError) throw profileError;
 
-      // Get who referred this transporter
-      const { data: referralData } = await supabase
+      // Get who referred this transporter (get referrer_id)
+      let referredByCompany: string | undefined = undefined;
+      const { data: referralData, error: referralError } = await supabase
         .from('referrals')
-        .select('referrer_id, profiles!referrer_id(company_name)')
+        .select('referrer_id')
         .eq('referred_user_id', transporterId)
-        .limit(1);
+        .limit(1)
+        .maybeSingle();
+
+      if (!referralError && referralData?.referrer_id) {
+        // Fetch the referrer's company_name
+        const { data: referrerProfile } = await supabase
+          .from('profiles')
+          .select('company_name')
+          .eq('id', referralData.referrer_id)
+          .single();
+        referredByCompany = referrerProfile?.company_name;
+      }
 
       // Get active shipments
       const { data: shipments } = await supabase
@@ -71,7 +83,7 @@ const UnresponsiveTransporterTracker = ({
       setTransporterInfo({
         ...profile,
         current_shipments: shipments || [],
-        referred_by: referralData?.[0]?.profiles?.company_name
+        referred_by: referredByCompany
       });
 
     } catch (error) {
@@ -243,3 +255,4 @@ const UnresponsiveTransporterTracker = ({
 };
 
 export default UnresponsiveTransporterTracker;
+
