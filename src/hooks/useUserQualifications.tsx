@@ -27,25 +27,43 @@ export const useUserQualifications = (userId?: string) => {
   const fetchQualifications = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('user_qualifications')
-        .select('*')
-        .eq('user_id', targetUserId)
-        .single();
+      
+      // Calculate qualifications from reviews table
+      const { data: reviews, error } = await supabase
+        .from('reviews')
+        .select('rating, shipment_id')
+        .eq('reviewed_id', targetUserId);
 
-      if (error && error.code !== 'PGRST116') { // Not found error
-        throw error;
-      }
+      if (error) throw error;
 
-      setQualifications(data || {
+      const totalReviews = reviews?.length || 0;
+      const averageRating = totalReviews > 0 
+        ? reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews 
+        : 0;
+      
+      // Count unique shipments as completed jobs
+      const uniqueShipments = new Set(reviews?.map(r => r.shipment_id) || []);
+      const totalJobs = uniqueShipments.size;
+
+      const qualificationsData: UserQualifications = {
+        total_completed_jobs: totalJobs,
+        average_rating: Math.round(averageRating * 100) / 100,
+        total_reviews: totalReviews,
+        is_referral_eligible: totalJobs >= 10 && averageRating >= 4.5,
+        last_qualification_check: new Date().toISOString()
+      };
+
+      setQualifications(qualificationsData);
+    } catch (error) {
+      console.error('Error fetching user qualifications:', error);
+      // Set default values if error
+      setQualifications({
         total_completed_jobs: 0,
         average_rating: 0,
         total_reviews: 0,
         is_referral_eligible: false,
         last_qualification_check: new Date().toISOString()
       });
-    } catch (error) {
-      console.error('Error fetching user qualifications:', error);
     } finally {
       setLoading(false);
     }
