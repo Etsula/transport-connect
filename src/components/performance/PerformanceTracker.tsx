@@ -140,7 +140,12 @@ const PerformanceTracker: React.FC = () => {
   }
 
   const latestMetrics = metrics.slice(0, 3);
-  const summary = latestMetrics[0] || {};
+  const summary = latestMetrics[0] || {
+    total_deliveries: 0,
+    successful_deliveries: 0,
+    average_rating: 0,
+    commission_earned: 0
+  };
 
   return (
     <div className="space-y-6">
@@ -152,7 +157,7 @@ const PerformanceTracker: React.FC = () => {
               <Package className="h-5 w-5 text-blue-600" />
               <div>
                 <p className="text-sm text-gray-600">Total Deliveries</p>
-                <p className="text-2xl font-bold">{summary.total_deliveries || 0}</p>
+                <p className="text-2xl font-bold">{summary.total_deliveries}</p>
               </div>
             </div>
           </CardContent>
@@ -164,7 +169,7 @@ const PerformanceTracker: React.FC = () => {
               <Star className="h-5 w-5 text-yellow-600" />
               <div>
                 <p className="text-sm text-gray-600">Average Rating</p>
-                <p className="text-2xl font-bold">{(summary.average_rating || 0).toFixed(1)}</p>
+                <p className="text-2xl font-bold">{summary.average_rating.toFixed(1)}</p>
               </div>
             </div>
           </CardContent>
@@ -191,7 +196,7 @@ const PerformanceTracker: React.FC = () => {
               <DollarSign className="h-5 w-5 text-purple-600" />
               <div>
                 <p className="text-sm text-gray-600">Commission Earned</p>
-                <p className="text-2xl font-bold">${(summary.commission_earned || 0).toFixed(2)}</p>
+                <p className="text-2xl font-bold">${summary.commission_earned.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
