@@ -348,6 +348,48 @@ export type Database = {
         }
         Relationships: []
       }
+      delivery_confirmations: {
+        Row: {
+          confirmed_at: string
+          confirmed_by: string
+          device_info: string | null
+          id: string
+          shipment_id: string
+          status: string
+        }
+        Insert: {
+          confirmed_at?: string
+          confirmed_by: string
+          device_info?: string | null
+          id?: string
+          shipment_id: string
+          status?: string
+        }
+        Update: {
+          confirmed_at?: string
+          confirmed_by?: string
+          device_info?: string | null
+          id?: string
+          shipment_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_confirmations_confirmed_by_fkey"
+            columns: ["confirmed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_confirmations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: true
+            referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       disputes: {
         Row: {
           against_user: string
