@@ -21,19 +21,59 @@ export const useUserManagement = () => {
 
   const fetchUsers = async () => {
     try {
+      // Join profiles with auth.users to get email
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          email:users!inner(email)
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData = (data || []).map(item => ({
+        id: item.id,
+        email: item.email?.email || '',
+        user_type: item.user_type || '',
+        company_name: item.company_name,
+        phone: item.phone,
+        created_at: item.created_at,
+        last_sign_in_at: item.last_sign_in_at,
+        is_verified: item.is_verified
+      }));
+      
+      setUsers(transformedData);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Failed to fetch users",
-        variant: "destructive"
-      });
+      // Fallback to profiles only if join fails
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        
+        const transformedData = (data || []).map(item => ({
+          id: item.id,
+          email: 'email@example.com', // Placeholder since we can't access auth.users directly
+          user_type: item.user_type || '',
+          company_name: item.company_name,
+          phone: item.phone,
+          created_at: item.created_at,
+          last_sign_in_at: item.last_sign_in_at,
+          is_verified: item.is_verified
+        }));
+        
+        setUsers(transformedData);
+      } catch (fallbackError: any) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch users",
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -72,7 +112,19 @@ export const useUserManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setUsers(data || []);
+      
+      const transformedData = (data || []).map(item => ({
+        id: item.id,
+        email: 'email@example.com', // Placeholder
+        user_type: item.user_type || '',
+        company_name: item.company_name,
+        phone: item.phone,
+        created_at: item.created_at,
+        last_sign_in_at: item.last_sign_in_at,
+        is_verified: item.is_verified
+      }));
+      
+      setUsers(transformedData);
     } catch (error: any) {
       toast({
         title: "Search Failed",

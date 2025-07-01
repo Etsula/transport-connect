@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ApiKey {
   id: string;
@@ -17,8 +18,18 @@ export const useApiIntegration = () => {
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { userData } = useAuth();
 
   const generateApiKey = async (name: string, permissions: string[]) => {
+    if (!userData?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to generate API keys",
+        variant: "destructive"
+      });
+      return { success: false, key: null };
+    }
+
     setLoading(true);
     try {
       const fullKey = `gd_${Math.random().toString(36).substring(2)}${Date.now().toString(36)}`;
@@ -31,8 +42,9 @@ export const useApiIntegration = () => {
           name,
           key_hash: keyHash,
           key_prefix: keyPrefix,
-          permissions,
-          is_active: true
+          permissions: permissions,
+          is_active: true,
+          user_id: userData.id
         })
         .select()
         .single();
@@ -83,14 +95,29 @@ export const useApiIntegration = () => {
   };
 
   const fetchApiKeys = async () => {
+    if (!userData?.id) return;
+
     try {
       const { data, error } = await supabase
         .from('api_keys')
         .select('*')
+        .eq('user_id', userData.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setApiKeys(data || []);
+      
+      // Transform the data to match our interface
+      const transformedData = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        key_prefix: item.key_prefix,
+        permissions: Array.isArray(item.permissions) ? item.permissions : [],
+        created_at: item.created_at,
+        last_used_at: item.last_used_at,
+        is_active: item.is_active
+      }));
+      
+      setApiKeys(transformedData);
     } catch (error: any) {
       toast({
         title: "Fetch Failed",

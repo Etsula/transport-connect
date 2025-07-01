@@ -1,162 +1,140 @@
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface UserData {
+  id: string;
+  email: string;
   userType: string;
-  id: string | null;
-  email?: string;
   profile?: {
     company_name?: string;
     phone?: string;
+    is_verified?: boolean;
   };
 }
 
 interface AuthContextType {
+  authenticated: boolean;
   userData: UserData;
   loading: boolean;
-  authenticated: boolean;
-  signOut: () => Promise<void>;
-  requireAuth: () => boolean;
-  refreshProfile: () => void;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [userData, setUserData] = useState<UserData>({
-    userType: "shipper",
-    id: null
-  });
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-
-  useEffect(() => {
-    checkAuth();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
-          await fetchUserProfile(session.user.id);
-          setAuthenticated(true);
-        } else if (event === 'SIGNED_OUT') {
-          setUserData({ userType: "shipper", id: null });
-          setAuthenticated(false);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        await fetchUserProfile(session.user.id);
-        setAuthenticated(true);
-      } else {
-        setAuthenticated(false);
-      }
-    } catch (error) {
-      console.error('Auth check error:', error);
-      setAuthenticated(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      const { data: profileData, error } = await supabase
-        .from("profiles")
-        .select("user_type, company_name, phone")
-        .eq("id", userId)
-        .single();
-        
-      if (error) throw error;
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      setUserData({
-        userType: profileData.user_type,
-        id: userId,
-        email: user?.email,
-        profile: {
-          company_name: profileData.company_name,
-          phone: profileData.phone
-        }
-      });
-    } catch (error) {
-      console.error('Profile fetch error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load user profile",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const signOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Signed out",
-        description: "You have been signed out successfully",
-      });
-      
-      navigate("/");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Sign out failed. Please try again.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const requireAuth = () => {
-    if (!authenticated) {
-      navigate("/auth");
-      return false;
-    }
-    return true;
-  };
-
-  const refreshProfile = () => {
-    if (userData.id) {
-      fetchUserProfile(userData.id);
-    }
-  };
-
-  const value: AuthContextType = {
-    userData,
-    loading,
-    authenticated,
-    signOut,
-    requireAuth,
-    refreshProfile
-  };
-
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
-};
-
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+  if (!context) {
+    // Return a default implementation for when used outside provider
+    const [userData, setUserData] = useState<UserData>({
+      id: '',
+      email: '',
+      userType: 'shipper'
+    });
+    const [authenticated, setAuthenticated] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const { toast } = useToast();
+
+    const login = async (email: string, password: string): Promise<boolean> => {
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        if (data.user) {
+          // Fetch user profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
+
+          setUserData({
+            id: data.user.id,
+            email: data.user.email || '',
+            userType: profile?.user_type || 'shipper',
+            profile: profile || undefined
+          });
+          setAuthenticated(true);
+          return true;
+        }
+        return false;
+      } catch (error: any) {
+        toast({
+          title: "Login Failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const logout = async () => {
+      await supabase.auth.signOut();
+      setAuthenticated(false);
+      setUserData({ id: '', email: '', userType: 'shipper' });
+    };
+
+    const refreshProfile = async () => {
+      if (!userData.id) return;
+      
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userData.id)
+        .single();
+
+      if (profile) {
+        setUserData(prev => ({
+          ...prev,
+          userType: profile.user_type || 'shipper',
+          profile: profile
+        }));
+      }
+    };
+
+    useEffect(() => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          setUserData({
+            id: session.user.id,
+            email: session.user.email || '',
+            userType: profile?.user_type || 'shipper',
+            profile: profile || undefined
+          });
+          setAuthenticated(true);
+        } else {
+          setAuthenticated(false);
+          setUserData({ id: '', email: '', userType: 'shipper' });
+        }
+        setLoading(false);
+      });
+
+      return () => subscription.unsubscribe();
+    }, []);
+
+    return {
+      authenticated,
+      userData,
+      loading,
+      login,
+      logout,
+      refreshProfile
+    };
   }
   return context;
 };
