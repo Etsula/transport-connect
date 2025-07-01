@@ -1,115 +1,82 @@
 
-import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Bell, Check, CheckCheck } from 'lucide-react';
-import { useNotifications } from '@/hooks/useNotifications';
-import { formatDistanceToNow } from 'date-fns';
+import React from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Bell, Check, CheckCheck } from "lucide-react";
+import { useNotifications } from "@/hooks/useNotifications";
+import { LoadingCard } from "@/components/ui/loading";
 
 const NotificationCenter = () => {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead } = useNotifications();
 
   if (loading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Notifications
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center p-4">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <LoadingCard title="Loading notifications..." />;
   }
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center">
+            <Bell className="h-5 w-5 mr-2" />
             Notifications
             {unreadCount > 0 && (
-              <Badge variant="destructive" className="ml-2">
+              <Badge className="ml-2" variant="destructive">
                 {unreadCount}
               </Badge>
             )}
-          </CardTitle>
+          </div>
           {unreadCount > 0 && (
             <Button
+              onClick={markAllAsRead}
               variant="outline"
               size="sm"
-              onClick={markAllAsRead}
-              className="flex items-center gap-1"
+              className="flex items-center"
             >
-              <CheckCheck className="h-4 w-4" />
+              <CheckCheck className="h-4 w-4 mr-1" />
               Mark All Read
             </Button>
           )}
-        </div>
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-96">
+        <div className="space-y-3 max-h-96 overflow-y-auto">
           {notifications.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No notifications yet
-            </div>
+            <p className="text-center text-gray-500 py-4">No notifications yet</p>
           ) : (
-            <div className="space-y-3">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={`p-3 rounded-lg border transition-colors ${
-                    notification.read 
-                      ? 'bg-background' 
-                      : 'bg-muted border-primary/20'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h4 className="font-medium text-sm">{notification.title}</h4>
-                        <Badge 
-                          variant={
-                            notification.type === 'error' ? 'destructive' :
-                            notification.type === 'warning' ? 'secondary' :
-                            notification.type === 'success' ? 'default' : 'outline'
-                          }
-                          className="text-xs"
-                        >
-                          {notification.type}
-                        </Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                      </p>
-                    </div>
-                    {!notification.read && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => markAsRead(notification.id)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    )}
+            notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className={`p-3 rounded-lg border ${
+                  notification.read 
+                    ? 'bg-gray-50 border-gray-200' 
+                    : 'bg-blue-50 border-blue-200'
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h4 className="font-medium text-sm">{notification.title}</h4>
+                    <p className="text-sm text-gray-600 mt-1">{notification.message}</p>
+                    <p className="text-xs text-gray-400 mt-2">
+                      {new Date(notification.created_at).toLocaleString()}
+                    </p>
                   </div>
+                  {!notification.read && (
+                    <Button
+                      onClick={() => markAsRead(notification.id)}
+                      variant="ghost"
+                      size="sm"
+                      className="ml-2"
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))
           )}
-        </ScrollArea>
+        </div>
       </CardContent>
     </Card>
   );
