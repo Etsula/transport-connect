@@ -25,85 +25,84 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    // Return a default implementation for when used outside provider
-    const [userData, setUserData] = useState<UserData>({
-      id: '',
-      email: '',
-      userType: 'shipper'
-    });
-    const [authenticated, setAuthenticated] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const { toast } = useToast();
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [userData, setUserData] = useState<UserData>({
+    id: '',
+    email: '',
+    userType: 'shipper'
+  });
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-    const login = async (email: string, password: string): Promise<boolean> => {
-      try {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
+  const login = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+
+      if (data.user) {
+        // Fetch user profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        setUserData({
+          id: data.user.id,
+          email: data.user.email || '',
+          userType: profile?.user_type || 'shipper',
+          profile: profile || undefined
         });
-
-        if (error) throw error;
-
-        if (data.user) {
-          // Fetch user profile
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', data.user.id)
-            .single();
-
-          setUserData({
-            id: data.user.id,
-            email: data.user.email || '',
-            userType: profile?.user_type || 'shipper',
-            profile: profile || undefined
-          });
-          setAuthenticated(true);
-          return true;
-        }
-        return false;
-      } catch (error: any) {
-        toast({
-          title: "Login Failed",
-          description: error.message,
-          variant: "destructive"
-        });
-        return false;
-      } finally {
-        setLoading(false);
+        setAuthenticated(true);
+        return true;
       }
-    };
+      return false;
+    } catch (error: any) {
+      toast({
+        title: "Login Failed",
+        description: error.message,
+        variant: "destructive"
+      });
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const logout = async () => {
-      await supabase.auth.signOut();
-      setAuthenticated(false);
-      setUserData({ id: '', email: '', userType: 'shipper' });
-    };
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setAuthenticated(false);
+    setUserData({ id: '', email: '', userType: 'shipper' });
+  };
 
-    const refreshProfile = async () => {
-      if (!userData.id) return;
-      
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userData.id)
-        .single();
+  const refreshProfile = async () => {
+    if (!userData.id) return;
+    
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userData.id)
+      .single();
 
-      if (profile) {
-        setUserData(prev => ({
-          ...prev,
-          userType: profile.user_type || 'shipper',
-          profile: profile
-        }));
-      }
-    };
+    if (profile) {
+      setUserData(prev => ({
+        ...prev,
+        userType: profile.user_type || 'shipper',
+        profile: profile
+      }));
+    }
+  };
 
-    useEffect(() => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        if (session?.user) {
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        // Defer profile fetching to avoid deadlocks
+        setTimeout(async () => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('*')
@@ -117,24 +116,33 @@ export const useAuth = () => {
             profile: profile || undefined
           });
           setAuthenticated(true);
-        } else {
-          setAuthenticated(false);
-          setUserData({ id: '', email: '', userType: 'shipper' });
-        }
-        setLoading(false);
-      });
+        }, 0);
+      } else {
+        setAuthenticated(false);
+        setUserData({ id: '', email: '', userType: 'shipper' });
+      }
+      setLoading(false);
+    });
 
-      return () => subscription.unsubscribe();
-    }, []);
+    return () => subscription.unsubscribe();
+  }, []);
 
-    return {
-      authenticated,
-      userData,
-      loading,
-      login,
-      logout,
-      refreshProfile
-    };
+  const value = {
+    authenticated,
+    userData,
+    loading,
+    login,
+    logout,
+    refreshProfile
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

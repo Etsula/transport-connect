@@ -10,8 +10,6 @@ interface UserProfile {
   company_name?: string;
   phone?: string;
   created_at: string;
-  last_sign_in_at?: string;
-  is_verified?: boolean;
 }
 
 export const useUserManagement = () => {
@@ -35,13 +33,11 @@ export const useUserManagement = () => {
       // Transform the data to match our interface
       const transformedData = (data || []).map(item => ({
         id: item.id,
-        email: item.email?.email || '',
+        email: 'email@example.com', // Note: Cannot access auth.users directly
         user_type: item.user_type || '',
         company_name: item.company_name,
         phone: item.phone,
-        created_at: item.created_at,
-        last_sign_in_at: item.last_sign_in_at,
-        is_verified: item.is_verified
+        created_at: item.created_at
       }));
       
       setUsers(transformedData);
@@ -61,9 +57,7 @@ export const useUserManagement = () => {
           user_type: item.user_type || '',
           company_name: item.company_name,
           phone: item.phone,
-          created_at: item.created_at,
-          last_sign_in_at: item.last_sign_in_at,
-          is_verified: item.is_verified
+          created_at: item.created_at
         }));
         
         setUsers(transformedData);
@@ -119,9 +113,7 @@ export const useUserManagement = () => {
         user_type: item.user_type || '',
         company_name: item.company_name,
         phone: item.phone,
-        created_at: item.created_at,
-        last_sign_in_at: item.last_sign_in_at,
-        is_verified: item.is_verified
+        created_at: item.created_at
       }));
       
       setUsers(transformedData);
@@ -138,9 +130,8 @@ export const useUserManagement = () => {
     const total = users.length;
     const shippers = users.filter(u => u.user_type === 'shipper').length;
     const transporters = users.filter(u => u.user_type === 'transporter').length;
-    const verified = users.filter(u => u.is_verified).length;
 
-    return { total, shippers, transporters, verified };
+    return { total, shippers, transporters };
   };
 
   useEffect(() => {

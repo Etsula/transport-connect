@@ -111,7 +111,7 @@ export const useApiIntegration = () => {
         id: item.id,
         name: item.name,
         key_prefix: item.key_prefix,
-        permissions: Array.isArray(item.permissions) ? item.permissions : [],
+        permissions: Array.isArray(item.permissions) ? item.permissions as string[] : [],
         created_at: item.created_at,
         last_used_at: item.last_used_at,
         is_active: item.is_active

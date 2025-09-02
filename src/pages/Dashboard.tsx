@@ -11,7 +11,7 @@ import ShipmentTracking from "@/components/ShipmentTracking";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
 
 const Dashboard = () => {
-  const { userData, loading: authLoading, signOut } = useAuth();
+  const { userData, loading: authLoading, logout } = useAuth();
   const { shipments, loading: shipmentsLoading } = useShipmentMessages();
 
   const demoTrackingData = {
@@ -50,7 +50,7 @@ const Dashboard = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-primary">Dashboard</h1>
-            <Button variant="outline" onClick={signOut}>Sign Out</Button>
+            <Button variant="outline" onClick={logout}>Sign Out</Button>
           </div>
         </div>
       </header>

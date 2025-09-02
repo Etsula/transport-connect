@@ -20,8 +20,8 @@ const UserManagementTable = () => {
     }
   };
 
-  const toggleUserVerification = async (userId: string, currentStatus: boolean) => {
-    await updateUserStatus(userId, { is_verified: !currentStatus });
+  const toggleUserType = async (userId: string, newType: string) => {
+    await updateUserStatus(userId, { user_type: newType });
   };
 
   const getUserTypeColor = (userType: string) => {
@@ -82,10 +82,10 @@ const UserManagementTable = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Verified</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{stats.verified}</div>
+            <div className="text-2xl font-bold text-purple-600">{stats.total}</div>
           </CardContent>
         </Card>
       </div>
@@ -142,13 +142,13 @@ const UserManagementTable = () => {
                     </td>
                     <td className="p-2">
                       <div className="flex items-center gap-2">
-                        <Badge variant={user.is_verified ? "default" : "secondary"}>
-                          {user.is_verified ? "Verified" : "Unverified"}
+                        <Badge variant="default">
+                          Active
                         </Badge>
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => toggleUserVerification(user.id, user.is_verified || false)}
+                          onClick={() => toggleUserType(user.id, user.user_type === 'admin' ? 'shipper' : 'admin')}
                         >
                           <Shield className="h-3 w-3" />
                         </Button>
