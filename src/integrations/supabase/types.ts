@@ -231,6 +231,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "bids_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bids_transporter_id_fkey"
             columns: ["transporter_id"]
             isOneToOne: false
@@ -393,6 +400,13 @@ export type Database = {
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "delivery_confirmations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: true
+            referencedRelation: "shipments_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       disputes: {
@@ -444,6 +458,13 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disputes_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
             referencedColumns: ["id"]
           },
         ]
@@ -679,6 +700,13 @@ export type Database = {
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "message_reports_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       notifications: {
@@ -877,6 +905,13 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_escrow_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1265,6 +1300,13 @@ export type Database = {
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reviews_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       route_waypoints: {
@@ -1318,6 +1360,13 @@ export type Database = {
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "route_waypoints_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       shipment_messages: {
@@ -1351,6 +1400,13 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_messages_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1395,6 +1451,13 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shipment_tracking_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1677,6 +1740,13 @@ export type Database = {
             referencedRelation: "shipments"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "transactions_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       transporter_locations: {
@@ -1719,6 +1789,13 @@ export type Database = {
             columns: ["shipment_id"]
             isOneToOne: false
             referencedRelation: "shipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transporter_locations_shipment_id_fkey"
+            columns: ["shipment_id"]
+            isOneToOne: false
+            referencedRelation: "shipments_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1934,7 +2011,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      shipments_public: {
+        Row: {
+          created_at: string | null
+          delivery_location: string | null
+          delivery_urgency: string | null
+          description: string | null
+          id: string | null
+          package_type: string | null
+          pickup_location: string | null
+          status: string | null
+          title: string | null
+          weight: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          delivery_location?: string | null
+          delivery_urgency?: string | null
+          description?: string | null
+          id?: string | null
+          package_type?: string | null
+          pickup_location?: string | null
+          status?: string | null
+          title?: string | null
+          weight?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          delivery_location?: string | null
+          delivery_urgency?: string | null
+          description?: string | null
+          id?: string | null
+          package_type?: string | null
+          pickup_location?: string | null
+          status?: string | null
+          title?: string | null
+          weight?: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_enable_enhanced_tracking: {
