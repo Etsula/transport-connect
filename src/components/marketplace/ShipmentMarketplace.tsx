@@ -270,10 +270,11 @@ const ShipmentMarketplace = () => {
           <DialogHeader>
             <DialogTitle>Place a Bid</DialogTitle>
           </DialogHeader>
-          {selectedShipmentId && (
+          {selectedShipmentId && userData.id && (
             <BidForm
               shipmentId={selectedShipmentId}
-              onBidPlaced={() => {
+              transporterId={userData.id}
+              onBidSubmitted={() => {
                 setBidDialogOpen(false);
                 fetchShipments();
                 toast({ title: "Bid placed", description: "Your bid has been submitted successfully" });
