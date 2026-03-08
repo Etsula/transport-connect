@@ -12,6 +12,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
+import PaymentCenter from "./pages/PaymentCenter";
+import UserManagement from "./pages/UserManagement";
 import CreateShipment from "./pages/CreateShipment";
 import FindShipments from "./pages/FindShipments";
 import ShipmentDetails from "./pages/ShipmentDetails";
@@ -80,6 +82,8 @@ function App() {
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/accessibility" element={<Accessibility />} />
                   <Route path="/security" element={<Security />} />
+                  <Route path="/payment-center" element={<PaymentCenter />} />
+                  <Route path="/user-management" element={<UserManagement />} />
                 </Routes>
               </main>
             </div>
