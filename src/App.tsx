@@ -82,6 +82,8 @@ function App() {
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="/accessibility" element={<Accessibility />} />
                   <Route path="/security" element={<Security />} />
+                  <Route path="/payment-center" element={<PaymentCenter />} />
+                  <Route path="/user-management" element={<UserManagement />} />
                 </Routes>
               </main>
             </div>
