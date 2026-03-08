@@ -12,6 +12,8 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
+import PaymentCenter from "./pages/PaymentCenter";
+import UserManagement from "./pages/UserManagement";
 import CreateShipment from "./pages/CreateShipment";
 import FindShipments from "./pages/FindShipments";
 import ShipmentDetails from "./pages/ShipmentDetails";
