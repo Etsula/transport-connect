@@ -5,6 +5,8 @@ import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { LoadingCard } from '@/components/ui/loading';
 import PaymentDashboard from '@/components/payments/PaymentDashboard';
 import InvoiceGenerator from '@/components/invoices/InvoiceGenerator';
+import PaymentMethodsManager from '@/components/payments/PaymentMethodsManager';
+import Disclaimers from '@/components/disclaimers/Disclaimers';
 
 const PaymentCenter = () => {
   const { authenticated, loading } = useAuthGuard();
@@ -18,8 +20,8 @@ const PaymentCenter = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <h1 className="text-2xl font-bold text-primary">Payment Center</h1>
         </div>
@@ -42,11 +44,13 @@ const PaymentCenter = () => {
           </TabsContent>
 
           <TabsContent value="methods">
-            <div className="text-center py-8">
-              <p className="text-gray-500">Payment methods management coming soon</p>
-            </div>
+            <PaymentMethodsManager />
           </TabsContent>
         </Tabs>
+
+        <div className="mt-8">
+          <Disclaimers type="liability" compact />
+        </div>
       </main>
     </div>
   );
