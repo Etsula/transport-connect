@@ -157,7 +157,7 @@ export type Database = {
           action: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_data: Json | null
           old_data: Json | null
           record_id: string | null
@@ -169,7 +169,7 @@ export type Database = {
           action: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
@@ -181,7 +181,7 @@ export type Database = {
           action?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string | null
@@ -1619,7 +1619,7 @@ export type Database = {
           created_at: string
           data_accessed: Json | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           shipment_id: string | null
           user_id: string
         }
@@ -1630,7 +1630,7 @@ export type Database = {
           created_at?: string
           data_accessed?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           shipment_id?: string | null
           user_id: string
         }
@@ -1641,7 +1641,7 @@ export type Database = {
           created_at?: string
           data_accessed?: Json | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           shipment_id?: string | null
           user_id?: string
         }
@@ -1653,7 +1653,7 @@ export type Database = {
           consent_type: string
           created_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           shipment_id: string | null
           user_agent: string | null
           user_id: string
@@ -1663,7 +1663,7 @@ export type Database = {
           consent_type: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           shipment_id?: string | null
           user_agent?: string | null
           user_id: string
@@ -1673,7 +1673,7 @@ export type Database = {
           consent_type?: string
           created_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           shipment_id?: string | null
           user_agent?: string | null
           user_id?: string
@@ -2056,14 +2056,8 @@ export type Database = {
         Args: { reason: string; target_user_id: string }
         Returns: boolean
       }
-      generate_invoice_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_invoice_number: { Args: never; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
       get_referral_chain_distance: {
         Args: { source_user_id: string; target_user_id: string }
         Returns: number
