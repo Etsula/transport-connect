@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { LoadingCard } from "@/components/ui/loading";
@@ -9,44 +9,72 @@ import ShipmentsList from "@/components/dashboard/ShipmentsList";
 import QuickActions from "@/components/dashboard/QuickActions";
 import ShipmentTracking from "@/components/ShipmentTracking";
 import NotificationCenter from "@/components/notifications/NotificationCenter";
+import Disclaimers from "@/components/disclaimers/Disclaimers";
+import { supabase } from "@/integrations/supabase/client";
 
 const Dashboard = () => {
   const { userData, loading: authLoading, logout } = useAuth();
   const { shipments, loading: shipmentsLoading } = useShipmentMessages();
+  const [latestTracking, setLatestTracking] = useState<any>(null);
+  const [trackingLoading, setTrackingLoading] = useState(false);
 
-  const demoTrackingData = {
-    shipmentId: "123456789",
-    currentStatus: "In Transit",
-    progress: 65,
-    trackingPoints: [
-      {
-        location: "Warehouse, Nairobi",
-        timestamp: "Jun 12, 8:30 AM",
-        status: "Picked up",
-        coordinates: { lat: -1.286389, lng: 36.817223 }
-      },
-      {
-        location: "Sorting Center, Nakuru",
-        timestamp: "Jun 12, 2:15 PM",
-        status: "In Transit",
-        coordinates: { lat: -0.303099, lng: 36.080025 }
-      },
-      {
-        location: "En route to Kisumu",
-        timestamp: "Jun 13, 9:45 AM",
-        status: "In Transit",
-        coordinates: { lat: 0.091517, lng: 34.767906 }
+  // Fetch real tracking data for the user's most recent active shipment
+  useEffect(() => {
+    const fetchTracking = async () => {
+      if (!shipments.length || shipmentsLoading) return;
+      
+      const activeShipment = shipments.find(s => 
+        s.status === "in_transit" || s.status === "assigned"
+      );
+      
+      if (!activeShipment) return;
+
+      setTrackingLoading(true);
+      try {
+        const { data: trackingData } = await supabase
+          .from("shipment_tracking")
+          .select("*")
+          .eq("shipment_id", activeShipment.id)
+          .order("created_at", { ascending: true });
+
+        if (trackingData && trackingData.length > 0) {
+          const trackingPoints = trackingData.map(t => ({
+            location: t.location || "Unknown location",
+            timestamp: new Date(t.created_at).toLocaleString(),
+            status: t.status,
+            coordinates: t.latitude && t.longitude 
+              ? { lat: t.latitude, lng: t.longitude }
+              : undefined
+          }));
+
+          const completedSteps = trackingData.length;
+          const estimatedTotal = Math.max(completedSteps + 2, 5);
+          const progress = Math.min(Math.round((completedSteps / estimatedTotal) * 100), 95);
+
+          setLatestTracking({
+            shipmentId: activeShipment.id,
+            currentStatus: trackingData[trackingData.length - 1].status,
+            trackingPoints,
+            progress
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching tracking:", err);
+      } finally {
+        setTrackingLoading(false);
       }
-    ]
-  };
+    };
+
+    fetchTracking();
+  }, [shipments, shipmentsLoading]);
 
   if (authLoading) {
     return <LoadingCard title="Loading dashboard..." />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
+    <div className="min-h-screen bg-background">
+      <header className="bg-card border-b border-border">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-primary">Dashboard</h1>
@@ -61,7 +89,8 @@ const Dashboard = () => {
             <StatsCards 
               shipments={shipments} 
               loading={shipmentsLoading} 
-              userType={userData.userType} 
+              userType={userData.userType}
+              userId={userData.id}
             />
           </div>
           <div>
@@ -69,14 +98,14 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {userData.userType === "shipper" && shipments.length > 0 && (
+        {latestTracking && (
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">Live Tracking</h2>
             <ShipmentTracking 
-              shipmentId={demoTrackingData.shipmentId}
-              currentStatus={demoTrackingData.currentStatus}
-              trackingPoints={demoTrackingData.trackingPoints}
-              progress={demoTrackingData.progress}
+              shipmentId={latestTracking.shipmentId}
+              currentStatus={latestTracking.currentStatus}
+              trackingPoints={latestTracking.trackingPoints}
+              progress={latestTracking.progress}
             />
           </section>
         )}
@@ -92,9 +121,13 @@ const Dashboard = () => {
           />
         </section>
 
-        <section>
+        <section className="mb-8">
           <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
           <QuickActions userType={userData.userType} />
+        </section>
+
+        <section>
+          <Disclaimers type="all" compact />
         </section>
       </main>
     </div>
