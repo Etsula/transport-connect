@@ -85,6 +85,7 @@ function App() {
                   <Route path="/security" element={<Security />} />
                   <Route path="/payment-center" element={<PaymentCenter />} />
                   <Route path="/user-management" element={<UserManagement />} />
+                  <Route path="/capacity-board" element={<CapacityBoard />} />
                 </Routes>
               </main>
             </div>
