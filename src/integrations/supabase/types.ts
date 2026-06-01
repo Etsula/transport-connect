@@ -246,6 +246,134 @@ export type Database = {
           },
         ]
       }
+      capacity_bookings: {
+        Row: {
+          created_at: string
+          currency: string
+          id: string
+          kg_booked: number
+          listing_id: string
+          package_description: string | null
+          shipper_id: string
+          status: string
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          currency?: string
+          id?: string
+          kg_booked: number
+          listing_id: string
+          package_description?: string | null
+          shipper_id: string
+          status?: string
+          total_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          currency?: string
+          id?: string
+          kg_booked?: number
+          listing_id?: string
+          package_description?: string | null
+          shipper_id?: string
+          status?: string
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capacity_bookings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "capacity_listings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      capacity_listings: {
+        Row: {
+          accepts_documents: boolean | null
+          accepts_fragile: boolean | null
+          arrival_date: string | null
+          available_kg: number
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          currency: string
+          departure_date: string
+          destination_city: string
+          destination_country: string
+          id: string
+          is_international: boolean
+          min_kg: number | null
+          notes: string | null
+          origin_city: string
+          origin_country: string
+          price_per_kg: number
+          provider_id: string
+          provider_name: string
+          provider_type: string
+          status: string
+          transport_mode: string
+          updated_at: string
+        }
+        Insert: {
+          accepts_documents?: boolean | null
+          accepts_fragile?: boolean | null
+          arrival_date?: string | null
+          available_kg: number
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          currency?: string
+          departure_date: string
+          destination_city: string
+          destination_country: string
+          id?: string
+          is_international?: boolean
+          min_kg?: number | null
+          notes?: string | null
+          origin_city: string
+          origin_country: string
+          price_per_kg: number
+          provider_id: string
+          provider_name: string
+          provider_type?: string
+          status?: string
+          transport_mode?: string
+          updated_at?: string
+        }
+        Update: {
+          accepts_documents?: boolean | null
+          accepts_fragile?: boolean | null
+          arrival_date?: string | null
+          available_kg?: number
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          currency?: string
+          departure_date?: string
+          destination_city?: string
+          destination_country?: string
+          id?: string
+          is_international?: boolean
+          min_kg?: number | null
+          notes?: string | null
+          origin_city?: string
+          origin_country?: string
+          price_per_kg?: number
+          provider_id?: string
+          provider_name?: string
+          provider_type?: string
+          status?: string
+          transport_mode?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       commission_structures: {
         Row: {
           base_commission: number | null
