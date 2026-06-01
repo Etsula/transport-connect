@@ -401,7 +401,7 @@ export default function CapacityBoard() {
       </Dialog>
 
       <div className="mt-8">
-        <Disclaimers />
+        <Disclaimers type="all" />
       </div>
     </div>
   );
