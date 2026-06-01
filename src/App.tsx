@@ -37,6 +37,7 @@ import GDPRCompliance from "./pages/GDPRCompliance";
 import NavigationHub from "./pages/NavigationHub";
 import TravelerPortal from "./pages/TravelerPortal";
 import PerformanceDashboard from "./pages/PerformanceDashboard";
+import CapacityBoard from "./pages/CapacityBoard";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ function App() {
                   <Route path="/security" element={<Security />} />
                   <Route path="/payment-center" element={<PaymentCenter />} />
                   <Route path="/user-management" element={<UserManagement />} />
+                  <Route path="/capacity-board" element={<CapacityBoard />} />
                 </Routes>
               </main>
             </div>
