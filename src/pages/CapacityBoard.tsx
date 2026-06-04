@@ -56,6 +56,12 @@ export default function CapacityBoard() {
   const [bookingFor, setBookingFor] = useState<Listing | null>(null);
   const [bookingKg, setBookingKg] = useState("");
   const [bookingDesc, setBookingDesc] = useState("");
+  const [confirmation, setConfirmation] = useState<null | {
+    reference: string;
+    listing: Listing;
+    kg: number;
+    total: number;
+  }>(null);
 
   const [form, setForm] = useState({
     provider_type: "traveler",
@@ -80,15 +86,18 @@ export default function CapacityBoard() {
 
   const load = async () => {
     setLoading(true);
+    // Anonymous users hit the masked public view (no contact info exposed).
+    // Authenticated users hit the full table so providers see their own contact info.
+    const source = userId ? "capacity_listings" : ("capacity_listings_public" as const);
     let q = supabase
-      .from("capacity_listings")
+      .from(source as any)
       .select("*")
-      .eq("status", "open")
       .gte("departure_date", new Date().toISOString().slice(0, 10))
       .order("departure_date", { ascending: true });
 
     if (filter === "intl") q = q.eq("is_international", true);
     if (filter === "local") q = q.eq("is_international", false);
+    if (userId) q = q.eq("status", "open");
 
     const { data, error } = await q;
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -165,14 +174,24 @@ export default function CapacityBoard() {
       return;
     }
     const total = kg * bookingFor.price_per_kg;
-    const { error } = await supabase.from("capacity_bookings").insert({
+    const { data, error } = await supabase.from("capacity_bookings").insert({
       listing_id: bookingFor.id,
       shipper_id: userId,
       kg_booked: kg,
       total_price: total,
       currency: bookingFor.currency,
       package_description: bookingDesc || null,
-    });
+    }).select("id").single();
+    if (error) {
+      toast({ title: "Failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    const reference = (data?.id || "").toString().slice(0, 8).toUpperCase();
+    setConfirmation({ reference, listing: bookingFor, kg, total });
+    setBookingFor(null);
+    setBookingKg("");
+    setBookingDesc("");
+  };
     if (error) {
       toast({ title: "Failed", description: error.message, variant: "destructive" });
       return;
