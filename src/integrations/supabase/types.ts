@@ -291,6 +291,13 @@ export type Database = {
             referencedRelation: "capacity_listings"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "capacity_bookings_listing_id_fkey"
+            columns: ["listing_id"]
+            isOneToOne: false
+            referencedRelation: "capacity_listings_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       capacity_listings: {
@@ -2139,6 +2146,75 @@ export type Database = {
       }
     }
     Views: {
+      capacity_listings_public: {
+        Row: {
+          accepts_documents: boolean | null
+          accepts_fragile: boolean | null
+          arrival_date: string | null
+          available_kg: number | null
+          created_at: string | null
+          currency: string | null
+          departure_date: string | null
+          destination_city: string | null
+          destination_country: string | null
+          id: string | null
+          is_international: boolean | null
+          min_kg: number | null
+          notes: string | null
+          origin_city: string | null
+          origin_country: string | null
+          price_per_kg: number | null
+          provider_name: string | null
+          provider_type: string | null
+          status: string | null
+          transport_mode: string | null
+        }
+        Insert: {
+          accepts_documents?: boolean | null
+          accepts_fragile?: boolean | null
+          arrival_date?: string | null
+          available_kg?: number | null
+          created_at?: string | null
+          currency?: string | null
+          departure_date?: string | null
+          destination_city?: string | null
+          destination_country?: string | null
+          id?: string | null
+          is_international?: boolean | null
+          min_kg?: number | null
+          notes?: string | null
+          origin_city?: string | null
+          origin_country?: string | null
+          price_per_kg?: number | null
+          provider_name?: string | null
+          provider_type?: string | null
+          status?: string | null
+          transport_mode?: string | null
+        }
+        Update: {
+          accepts_documents?: boolean | null
+          accepts_fragile?: boolean | null
+          arrival_date?: string | null
+          available_kg?: number | null
+          created_at?: string | null
+          currency?: string | null
+          departure_date?: string | null
+          destination_city?: string | null
+          destination_country?: string | null
+          id?: string | null
+          is_international?: boolean | null
+          min_kg?: number | null
+          notes?: string | null
+          origin_city?: string | null
+          origin_country?: string | null
+          price_per_kg?: number | null
+          provider_name?: string | null
+          provider_type?: string | null
+          status?: string | null
+          transport_mode?: string | null
+        }
+        Relationships: []
+      }
       shipments_public: {
         Row: {
           created_at: string | null
