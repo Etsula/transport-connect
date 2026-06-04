@@ -419,6 +419,37 @@ export default function CapacityBoard() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!confirmation} onOpenChange={(o) => !o && setConfirmation(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">✓</span>
+              Booking confirmed
+            </DialogTitle>
+          </DialogHeader>
+          {confirmation && (
+            <div className="space-y-3 text-sm">
+              <p className="text-muted-foreground">
+                Your booking request has been sent to <strong>{confirmation.listing.provider_name}</strong>. They will contact you to arrange handover and payment.
+              </p>
+              <div className="rounded-md border bg-muted/40 p-3 space-y-1">
+                <div className="flex justify-between"><span className="text-muted-foreground">Reference</span><span className="font-mono font-semibold">{confirmation.reference}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Route</span><span>{confirmation.listing.origin_city} → {confirmation.listing.destination_city}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Departure</span><span>{new Date(confirmation.listing.departure_date).toLocaleDateString()}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Weight</span><span>{confirmation.kg} kg</span></div>
+                <div className="flex justify-between border-t pt-1 mt-1"><span className="font-semibold">Total</span><span className="font-semibold">{confirmation.listing.currency} {confirmation.total.toFixed(2)}</span></div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Keep your reference number. You can view and manage bookings from your dashboard.
+              </p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button onClick={() => setConfirmation(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="mt-8">
         <Disclaimers type="all" />
       </div>
