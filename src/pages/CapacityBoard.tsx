@@ -101,7 +101,7 @@ export default function CapacityBoard() {
 
     const { data, error } = await q;
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else setListings((data || []) as Listing[]);
+    else setListings(((data || []) as unknown) as Listing[]);
     setLoading(false);
   };
 
@@ -188,15 +188,6 @@ export default function CapacityBoard() {
     }
     const reference = (data?.id || "").toString().slice(0, 8).toUpperCase();
     setConfirmation({ reference, listing: bookingFor, kg, total });
-    setBookingFor(null);
-    setBookingKg("");
-    setBookingDesc("");
-  };
-    if (error) {
-      toast({ title: "Failed", description: error.message, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Booking requested", description: `Provider will be notified. Total: ${bookingFor.currency} ${total.toFixed(2)}` });
     setBookingFor(null);
     setBookingKg("");
     setBookingDesc("");
