@@ -101,7 +101,7 @@ export default function CapacityBoard() {
 
     const { data, error } = await q;
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
-    else setListings((data || []) as Listing[]);
+    else setListings(((data || []) as unknown) as Listing[]);
     setLoading(false);
   };
 
