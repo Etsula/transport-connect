@@ -192,15 +192,6 @@ export default function CapacityBoard() {
     setBookingKg("");
     setBookingDesc("");
   };
-    if (error) {
-      toast({ title: "Failed", description: error.message, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Booking requested", description: `Provider will be notified. Total: ${bookingFor.currency} ${total.toFixed(2)}` });
-    setBookingFor(null);
-    setBookingKg("");
-    setBookingDesc("");
-  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
